@@ -51,14 +51,21 @@ namespace Aura.Channel.Skills
 		/// Reduces weapon's durability and increases its proficiency.
 		/// Only updates weapon type items that are not null.
 		/// </summary>
-		/// <param name="creature"></param>
-		/// <param name="weapon"></param>
-		public static void UpdateWeapon(Creature attacker, Creature target, params Item[] weapons)
+		/// <param name="attacker">Creature who's weapon is updated.</param>
+		/// <param name="target">
+		/// The target of the skill, used for power rating calculations.
+		/// If target is null, prof will be rewarded regardless of target.
+		/// </param>
+		/// <param name="weapons">Weapons to update.</param>
+		public static void UpdateWeapon(Creature attacker, Creature target, ProficiencyGainType profGainType, params Item[] weapons)
 		{
 			if (attacker == null)
 				return;
 
 			var rnd = RandomProvider.Get();
+
+			// Add prof if no target was specified or the target is not "Weakest".
+			var addProf = (target == null || attacker.GetPowerRating(target) >= PowerRating.Weak);
 
 			foreach (var weapon in weapons.Where(a => a != null && a.IsTrainableWeapon))
 			{
@@ -66,29 +73,18 @@ namespace Aura.Channel.Skills
 				if (!ChannelServer.Instance.Conf.World.NoDurabilityLoss)
 				{
 					var reduce = rnd.Next(1, 30);
-
-					// Half dura loss if blessed
-					if (weapon.IsBlessed)
-						reduce = Math.Max(1, reduce / 2);
-
-					weapon.Durability -= reduce;
-					Send.ItemDurabilityUpdate(attacker, weapon);
+					attacker.Inventory.ReduceDurability(weapon, reduce);
 				}
 
+				// Don't add prof if weapon is broken.
+				if (weapon.Durability == 0)
+					addProf = false;
+
 				// Proficiency
-				// Only if the weapon isn't broken and the target is not "Weakest".
-				if (weapon.Durability != 0 && attacker != null && attacker.GetPowerRating(target) >= PowerRating.Weak)
+				if (addProf)
 				{
-					short prof = 0;
-
-					if (attacker.Age >= 10 && attacker.Age <= 12)
-						prof = 48;
-					else if (attacker.Age >= 13 && attacker.Age <= 19)
-						prof = 60;
-					else
-						prof = 72;
-
-					attacker.Inventory.AddProficiency(weapon, prof);
+					var amount = Item.GetProficiencyGain(attacker.Age, profGainType);
+					attacker.Inventory.AddProficiency(weapon, amount);
 				}
 			}
 		}

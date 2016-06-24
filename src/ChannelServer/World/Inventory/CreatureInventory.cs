@@ -1722,7 +1722,7 @@ namespace Aura.Channel.World.Inventory
 					}
 				}
 				// Skill rank >, <, ==
-				else if (effect.CheckType >= UpgradeCheckType.SkillRankEqual && effect.CheckType >= UpgradeCheckType.SkillRankLowerThan)
+				else if (effect.CheckType >= UpgradeCheckType.SkillRankEqual && effect.CheckType <= UpgradeCheckType.SkillRankLowerThan)
 				{
 					var skillId = effect.CheckSkillId;
 					var skillRank = effect.CheckSkillRank;
@@ -2011,6 +2011,10 @@ namespace Aura.Channel.World.Inventory
 			if (!this.Has(item))
 				return;
 
+			// Half dura loss if blessed
+			if (item.IsBlessed)
+				amount = Math.Max(1, amount / 2);
+
 			item.OptionInfo.Durability = Math.Max(0, item.OptionInfo.Durability - amount);
 			Send.ItemDurabilityUpdate(_creature, item);
 		}
@@ -2040,10 +2044,9 @@ namespace Aura.Channel.World.Inventory
 		/// <param name="amount"></param>
 		public void AddProficiency(Item item, int amount)
 		{
-			// Thursday: Increase of proficiency gaining rate.
-			// +5%, bonus is unofficial.
+			// Thursday: Increase of proficiency gaining rate (20%).
 			if (ErinnTime.Now.Month == ErinnMonth.Lughnasadh)
-				amount = (int)(amount * 1.05f);
+				amount = (int)(amount * 1.20f);
 
 			item.Proficiency += amount;
 

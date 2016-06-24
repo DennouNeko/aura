@@ -155,7 +155,7 @@ namespace Aura.Channel.Skills.Combat
 								//tAction.Set(tAction.Has(TargetOptions.Critical) ? TargetOptions.KnockDown : TargetOptions.KnockBack);
 								tAction.Set(TargetOptions.KnockDown);
 						}
-						else if (!attacker.IsDualWielding && !weaponIsKnuckle)
+						else if (!attacker.IsDualWielding && !weaponIsKnuckle && target.Is(RaceStands.KnockBackable))
 						{
 							target.Stability = Creature.MinStability;
 							tAction.Set(TargetOptions.KnockDown);
@@ -191,7 +191,7 @@ namespace Aura.Channel.Skills.Combat
 					aAction.Stun *= 2;
 
 				// Update current weapon
-				SkillHelper.UpdateWeapon(attacker, target, weapon);
+				SkillHelper.UpdateWeapon(attacker, target, ProficiencyGainType.Melee, weapon);
 
 				// Consume stamina for weapon
 				var staminaUsage = (weapon != null ? weapon.Data.StaminaUsage : Creature.BareHandStaminaUsage);
