@@ -377,6 +377,8 @@ namespace Aura.Channel.World.Entities
 		public override void Kill(Creature killer)
 		{
 			base.Kill(killer);
+			if (IsRolePlayingNPC)
+				return;
 
 			this.DisappearTime = DateTime.Now.AddSeconds(NPC.DisappearDelay);
 
