@@ -368,13 +368,17 @@ namespace Aura.Channel.World
 			{
 				foreach (var creature in _creatures.Values)
 				{
+					// Update player creatures
 					var pc = creature as PlayerCreature;
+					if (pc != null)
+						pc.LookAround();
 
-					// Only update player creatures
-					if (pc == null)
-						continue;
-
-					pc.LookAround();
+					// If NPC is used for RolePlaying, update it too
+					var npc = creature as NPC;
+					if(npc != null && npc.IsRolePlayingNPC)
+					{
+						npc.LookAround();
+					}
 				}
 			}
 			finally
@@ -399,7 +403,7 @@ namespace Aura.Channel.World
 				_creaturesRWLS.EnterReadLock();
 				try
 				{
-					result.AddRange(_creatures.Values.Where(a => a.GetPosition().InRange(pos, VisibleRange) && !a.Conditions.Has(ConditionsA.Invisible)));
+					result.AddRange(_creatures.Values.Where(a => a.GetPosition().InRange(pos, VisibleRange) && !a.Conditions.Has(ConditionsA.Invisible) && !a.Temp.IsRolePlayingInvisible));
 				}
 				finally
 				{
@@ -509,7 +513,15 @@ namespace Aura.Channel.World
 			}
 
 			// TODO: Technically not required? Handled by LookAround.
-			Send.EntityDisappears(creature);
+			var npc = creature as NPC;
+			if (npc != null && npc.IsRolePlayingNPC)
+			{
+				Send.EntityDisappears(creature, true);
+			}
+			else
+			{
+				Send.EntityDisappears(creature);
+			}
 
 			if (creature.IsPlayer)
 			{
@@ -522,6 +534,11 @@ namespace Aura.Channel.World
 			var playerCreature = creature as PlayerCreature;
 			if (playerCreature != null)
 				playerCreature.LookAround();
+
+			if (npc != null && npc.IsRolePlayingNPC)
+			{
+				npc.LookAround();
+			}
 
 			creature.Region = Region.Limbo;
 
