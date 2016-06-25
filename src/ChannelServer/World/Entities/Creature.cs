@@ -199,6 +199,11 @@ namespace Aura.Channel.World.Entities
 			}
 		}
 
+		/// <summary>
+		/// The outfit Nao wears when reviving the creature.
+		/// </summary>
+		public NaoOutfit NaoOutfit { get; set; }
+
 		// Look
 		// ------------------------------------------------------------------
 
@@ -1369,70 +1374,67 @@ namespace Aura.Channel.World.Entities
 		}
 
 		/// <summary>
-		/// Called regularly to reduce equipments durability.
+		/// Called regularly to reduce equipments durability and give
+		/// proficiency to armors.
 		/// </summary>
 		/// <remarks>
 		/// http://wiki.mabinogiworld.com/view/Durability#Per_Tick
-		/// The loss actually doesn't seem to be fixed, I've logged
+		/// http://wiki.mabinogiworld.com/view/Proficiency
+		/// 
+		/// The dura loss actually doesn't seem to be fixed, I've logged
 		/// varying values on NA. However, *most* of the time the
 		/// values below are used.
 		/// </remarks>
 		private void EquipmentDecay()
 		{
-			if (ChannelServer.Instance.Conf.World.NoDurabilityLoss)
-				return;
-
-			var equipment = this.Inventory.GetEquipment();
+			var equipment = this.Inventory.GetMainEquipment(a => a.Durability > 0);
 			var update = new List<Item>();
-			var loss = 0;
 
-			foreach (var item in equipment.Where(a => a.Durability > 0))
+			foreach (var item in equipment)
 			{
-				// Going by the name, I assume items with this tag don't lose
-				// durability regularly.
-				if (item.HasTag("/no_abrasion/"))
-					continue;
-
-				switch (item.Info.Pocket)
+				// Dura loss
+				// Going by the name "no_abrasion", I assume items with this
+				// tag don't lose durability regularly.
+				if (!ChannelServer.Instance.Conf.World.NoDurabilityLoss && !item.HasTag("/no_abrasion/"))
 				{
-					case Pocket.Head: loss = 3; break;
-					case Pocket.Armor: loss = 16; break; // 6
-					case Pocket.Shoe: loss = 14; break; // 13
-					case Pocket.Glove: loss = 10; break; // 9
-					case Pocket.Robe: loss = 10; break;
+					var loss = 0;
 
-					case Pocket.RightHand1:
-						if (this.Inventory.WeaponSet != WeaponSet.First)
-							continue;
-						loss = 3;
-						break;
-					case Pocket.RightHand2:
-						if (this.Inventory.WeaponSet != WeaponSet.Second)
-							continue;
-						loss = 3;
-						break;
+					switch (item.Info.Pocket)
+					{
+						case Pocket.Head: loss = 3; break;
+						case Pocket.Armor: loss = 16; break; // 6
+						case Pocket.Shoe: loss = 14; break; // 13
+						case Pocket.Glove: loss = 10; break; // 9
+						case Pocket.Robe: loss = 10; break;
 
-					case Pocket.LeftHand1:
-						if (this.Inventory.WeaponSet != WeaponSet.First)
-							continue;
-						loss = 6;
-						break;
-					case Pocket.LeftHand2:
-						if (this.Inventory.WeaponSet != WeaponSet.Second)
-							continue;
-						loss = 6;
-						break;
+						case Pocket.RightHand1:
+						case Pocket.RightHand2:
+							loss = 3;
+							break;
 
-					default:
-						continue;
+						case Pocket.LeftHand1:
+						case Pocket.LeftHand2:
+							loss = 6;
+							break;
+					}
+
+					if (loss != 0)
+					{
+						// Half dura loss if blessed
+						if (item.IsBlessed)
+							loss = Math.Max(1, loss / 2);
+
+						item.Durability -= loss;
+						update.Add(item);
+					}
 				}
 
-				// Half dura loss if blessed
-				if (item.IsBlessed)
-					loss = Math.Max(1, loss / 2);
-
-				item.Durability -= loss;
-				update.Add(item);
+				// Armor prof
+				if (item.Durability != 0 && item.Info.Pocket.IsMainArmor())
+				{
+					var amount = Item.GetProficiencyGain(this.Age, ProficiencyGainType.Time);
+					this.Inventory.AddProficiency(item, amount);
+				}
 			}
 
 			if (update.Count != 0)
@@ -1852,6 +1854,28 @@ namespace Aura.Channel.World.Entities
 				}
 				tracker.RegisterHit(damage);
 				_totalHits = Interlocked.Increment(ref _totalHits);
+			}
+
+			var equip = this.Inventory.GetEquipment();
+
+			// Give proficiency to random main armor
+			var mainArmors = equip.Where(a => a.Info.Pocket.IsMainArmor());
+			if (mainArmors.Count() != 0)
+			{
+				var item = mainArmors.Random();
+				var amount = Item.GetProficiencyGain(this.Age, ProficiencyGainType.Damage);
+				this.Inventory.AddProficiency(item, amount);
+			}
+
+			// Reduce durability of random item
+			if (!ChannelServer.Instance.Conf.World.NoDurabilityLoss)
+			{
+				if (equip.Length != 0)
+				{
+					var item = equip.Random();
+					var amount = RandomProvider.Get().Next(1, 30);
+					this.Inventory.ReduceDurability(item, amount);
+				}
 			}
 
 			// Kill if life too low

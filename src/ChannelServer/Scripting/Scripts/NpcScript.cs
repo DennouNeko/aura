@@ -816,6 +816,12 @@ namespace Aura.Channel.Scripting.Scripts
 			item = this.NPC.Inventory.GetItemAt(Pocket.RobeStyle, 0, 0);
 			if (item != null)
 				item.Info.State = 1;
+			item = this.NPC.Inventory.GetItemAt(Pocket.Armor, 0, 0);
+			if (item != null)
+				item.Info.State = 1;
+			item = this.NPC.Inventory.GetItemAt(Pocket.ArmorStyle, 0, 0);
+			if (item != null)
+				item.Info.State = 1;
 		}
 
 		/// <summary>
@@ -2227,6 +2233,8 @@ namespace Aura.Channel.Scripting.Scripts
 		public DialogShowDirection ShowDirection(int x, int y, int angle) { return new DialogShowDirection(x, y, angle); }
 
 		public DialogSetDefaultName SetDefaultName(string name) { return new DialogSetDefaultName(name); }
+
+		public DialogSelectItem SelectItem(string title, string caption, string tags) { return new DialogSelectItem(title, caption, tags); }
 
 		// ------------------------------------------------------------------
 
