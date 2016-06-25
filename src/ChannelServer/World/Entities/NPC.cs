@@ -11,6 +11,7 @@ using System;
 using Aura.Channel.Network.Sending;
 using Aura.Data.Database;
 using Aura.Data;
+using Aura.Channel.World.Dungeons;
 
 namespace Aura.Channel.World.Entities
 {
@@ -61,6 +62,15 @@ namespace Aura.Channel.World.Entities
 		/// Custom portrait in dialog.
 		/// </summary>
 		public string DialogPortrait { get; set; }
+
+		/// <summary>
+		/// Returns true if NPC is used for RP.
+		/// </summary>
+		public bool IsRolePlayingNPC { get { return this.Temp.RolePlayingController as PlayerCreature != null; } }
+
+		// For emulating PlayerCreature as NPC
+		private List<Entity> _visibleEntities = new List<Entity>();
+		private object _lookAroundLock = new Object();
 
 		/// <summary>
 		/// Creates new NPC
@@ -220,21 +230,75 @@ namespace Aura.Channel.World.Entities
 		/// <returns></returns>
 		public override bool Warp(int regionId, int x, int y)
 		{
-			var region = ChannelServer.Instance.World.GetRegion(regionId);
-			if (region == null)
+			if (!IsRolePlayingNPC)
 			{
-				Log.Error("NPC.Warp: Region '{0}' doesn't exist.", regionId);
-				return false;
+				// NPC Warp
+				var region = ChannelServer.Instance.World.GetRegion(regionId);
+				if (region == null)
+				{
+					Log.Error("NPC.Warp: Region '{0}' doesn't exist.", regionId);
+					return false;
+				}
+
+				if (this.Region != Region.Limbo)
+					this.Region.RemoveCreature(this);
+
+				this.SetLocation(regionId, x, y);
+
+				region.AddCreature(this);
+
+				return true;
 			}
+			else
+			{
+				var targetRegion = ChannelServer.Instance.World.GetRegion(regionId);
+				if (targetRegion == null)
+				{
+					Send.ServerMessage(this, "Warp failed, region doesn't exist.");
+					Log.Error("PC.Warp: Region '{0}' doesn't exist.", regionId);
+					return false;
+				}
 
-			if (this.Region != Region.Limbo)
-				this.Region.RemoveCreature(this);
+				var currentRegionId = this.RegionId;
+				var loc = new Location(currentRegionId, this.GetPosition());
 
-			this.SetLocation(regionId, x, y);
+				this.LastLocation = loc;
+				this.WarpLocation = new Location(regionId, x, y);
+				this.Warping = true;
+				this.Lock(Locks.Default, true);
 
-			region.AddCreature(this);
+				// Dynamic Region warp
+				var dynamicRegion = targetRegion as DynamicRegion;
+				if (dynamicRegion != null)
+				{
+					if (!this.Region.IsTemp)
+						this.FallbackLocation = loc;
 
-			return true;
+					Send.EnterDynamicRegion(this, currentRegionId, targetRegion, x, y);
+
+					return true;
+				}
+
+				// Dungeon warp
+				var dungeonRegion = targetRegion as DungeonRegion;
+				if (dungeonRegion != null)
+				{
+					if (!this.Region.IsTemp)
+					{
+						this.FallbackLocation = loc;
+						this.DungeonSaveLocation = this.WarpLocation;
+					}
+
+					Send.DungeonInfo(this, dungeonRegion.Dungeon);
+
+					return true;
+				}
+
+				// Normal warp
+				Send.EnterRegion(this, regionId, x, y);
+
+				return true;
+			}
 		}
 
 		/// <summary>
@@ -265,6 +329,27 @@ namespace Aura.Channel.World.Entities
 			Send.PlaySound(this, "data/sound/Tarlach_change.wav");
 
 			return true;
+		}
+
+		/// <summary>
+		/// Updates visible creatures, sends Entities(Dis)Appear.
+		/// Should be called only in special case, when controled by player,
+		/// so not doing a sanity check.
+		/// </summary>
+		public void LookAround()
+		{
+			lock (_lookAroundLock)
+			{
+				var currentlyVisible = this.Region.GetVisibleEntities(this.Temp.RolePlayingActor != null ? this.Temp.RolePlayingActor : this);
+
+				var appear = currentlyVisible.Except(_visibleEntities);
+				var disappear = _visibleEntities.Except(currentlyVisible);
+
+				Send.EntitiesAppear(this.Client, appear);
+				Send.EntitiesDisappear(this.Client, disappear);
+
+				_visibleEntities = currentlyVisible;
+			}
 		}
 
 		/// <summary>
@@ -365,18 +450,25 @@ namespace Aura.Channel.World.Entities
 		/// <returns></returns>
 		protected override bool ShouldSurvive(float damage, Creature from, float lifeBefore)
 		{
-			// No surviving once you're in deadly
-			if (lifeBefore < 0)
-				return false;
+			if (!IsRolePlayingNPC)
+			{
+				// No surviving once you're in deadly
+				if (lifeBefore < 0)
+					return false;
 
-			if (!AuraData.FeaturesDb.IsEnabled("DeadlyNPCs"))
-				return false;
+				if (!AuraData.FeaturesDb.IsEnabled("DeadlyNPCs"))
+					return false;
 
-			// Chance = Will/10, capped at 50%
-			// (i.e 80 Will = 8%, 500+ Will = 50%)
-			// Actual formula unknown
-			var chance = Math.Min(50, this.Will / 10);
-			return (RandomProvider.Get().Next(101) < chance);
+				// Chance = Will/10, capped at 50%
+				// (i.e 80 Will = 8%, 500+ Will = 50%)
+				// Actual formula unknown
+				var chance = Math.Min(50, this.Will / 10);
+				return (RandomProvider.Get().Next(101) < chance);
+			}
+			else
+			{
+				return (lifeBefore >= this.LifeMax / 2);
+			}
 		}
 
 		/// <summary>
