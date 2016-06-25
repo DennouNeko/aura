@@ -45,9 +45,14 @@ namespace Aura.Channel.Network.Handlers
 			}
 			var sessionKey = packet.GetLong();
 			var characterId = packet.GetLong();
+			bool secondaryLogin = (packet.Peek() == PacketElementType.Byte && packet.GetByte() == 0x0b);
+			if(secondaryLogin)
+			{
+				Log.Info("ChannelLogin handler: Secondary character logging in: 0x{0:X}", characterId);
+			}
 
 			// Check state
-			if (client.State != ClientState.LoggingIn)
+			if (client.State != ClientState.LoggingIn && !secondaryLogin)
 				return;
 
 			// Check account
@@ -63,14 +68,17 @@ namespace Aura.Channel.Network.Handlers
 			}
 
 			// Check character
-			var character = account.GetCharacterOrPetSafe(characterId);
+			var character = secondaryLogin ? client.Creatures[characterId] : account.GetCharacterOrPetSafe(characterId);
 
 			// Free premium
 			account.PremiumServices.EvaluateFreeServices(ChannelServer.Instance.Conf.Premium);
 
 			client.Account = account;
-			client.Controlling = character;
-			client.Creatures.Add(character.EntityId, character);
+			if (!secondaryLogin)
+			{
+				client.Controlling = character;
+				client.Creatures.Add(character.EntityId, character);
+			}
 			character.Client = client;
 
 			client.State = ClientState.LoggedIn;
@@ -86,7 +94,9 @@ namespace Aura.Channel.Network.Handlers
 
 				character.Activate(CreatureStates.EverEnteredWorld);
 
-				character.Warp(character.GetLocation());
+				var loc = character.GetLocation();
+				// Log.Info("Spawning character at {0}", loc);
+				character.Warp(loc);
 			}
 			// Special login to Soul Stream for new chars
 			else
@@ -159,8 +169,12 @@ namespace Aura.Channel.Network.Handlers
 			creature.Region.ActivateAis(creature, pos, pos);
 
 			// Warp pets and other creatures as well
-			foreach (var cr in client.Creatures.Values.Where(a => a.RegionId != creature.RegionId))
-				cr.Warp(creature.RegionId, pos.X, pos.Y);
+			// Ignore if RolePlaying?
+			if (creature.Temp.RolePlayingController == null && !creature.Temp.IsRolePlayingInvisible)
+			{
+				foreach (var cr in client.Creatures.Values.Where(a => a.RegionId != creature.RegionId))
+					cr.Warp(creature.RegionId, pos.X, pos.Y);
+			}
 
 			// Automatically done by the world update
 			//Send.EntitiesAppear(client, region.GetEntitiesInRange(creature));
