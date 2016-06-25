@@ -322,5 +322,84 @@ namespace Aura.Channel.World.Dungeons
 				}
 			}
 		}
+
+		/// <summary>
+		/// Creates a dungeon with the given parameters and warps the creature's
+		/// party inside.
+		/// </summary>
+		/// <param name="dungeonName"></param>
+		/// <param name="itemId"></param>
+		/// <param name="creature"></param>
+		/// <returns></returns>
+		public bool CreateRPDungeonAndWarp(string dungeonName, int itemId, Creature creature, Func<Creature, Creature> npcSubstitute)
+		{
+			lock (_createAndCleanUpLock)
+			{
+				try
+				{
+					var dungeon = this.CreateDungeon(dungeonName, itemId, creature);
+					var regionId = dungeon.Regions.First().Id;
+
+					bool failed = false;
+
+					// Warp the party currently standing on the altar into the dungeon.
+					var party = creature.Party.GetCreaturesOnAltar(creature.RegionId);
+					foreach (var member in party)
+					{
+						if (member as PlayerCreature == null)
+						{
+							Send.SystemMessage(creature, "{0} can't enter the dungeon!", member.Name);
+							if (member != creature)
+								Send.SystemMessage(member, "You can't enter a RP dungeon");
+							failed = true;
+						}
+					}
+					if (failed) return false;
+
+					foreach (var member in party)
+					{
+						var pos = member.GetPosition();
+						var actor = npcSubstitute == null ? member : npcSubstitute(member);
+						if(actor is NPC && member is PlayerCreature)
+						{
+							var act = actor as NPC;
+							var pc = member as PlayerCreature;
+							if (!pc.LoginAsNPC(act, regionId, pos.X, pos.Y, true))
+							{
+								failed = true;
+								break;
+							}
+						}
+						else
+						{
+							actor.Warp(regionId, pos);
+						}
+
+						// TODO: This is a bit hacky, needs to be moved to Creature.Warp, with an appropriate check.
+						Send.EntitiesDisappear(member.Client, party);
+					}
+
+					if (failed)
+					{
+						foreach (var member in party)
+						{
+							var pc = member as PlayerCreature;
+							if (pc.Temp.RolePlayingActor as NPC != null)
+							{
+								pc.DisconnectFromNPC();
+							}
+						}
+						return false;
+					}
+
+					return true;
+				}
+				catch (Exception ex)
+				{
+					Log.Exception(ex, "Failed to create and warp to dungeon.");
+					return false;
+				}
+			}
+		}
 	}
 }

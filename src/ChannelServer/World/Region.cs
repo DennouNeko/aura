@@ -730,7 +730,7 @@ namespace Aura.Channel.World
 			_creaturesRWLS.EnterReadLock();
 			try
 			{
-				return _creatures.Values.Where(a => a.IsPlayer).ToList();
+				return _creatures.Values.Where(a => a.IsPlayer || (a is NPC && (a as NPC).IsRolePlayingNPC)).ToList();
 			}
 			finally
 			{
@@ -749,7 +749,8 @@ namespace Aura.Channel.World
 			{
 				// Count any player creatures that are directly controlled,
 				// filtering creatures with masters (pets/partners).
-				return _creatures.Values.Count(a => a is PlayerCreature && a.Master == null);
+				return _creatures.Values.Count(a => a is PlayerCreature && a.Master == null)
+					+ _creatures.Values.Count(a => a is NPC && (a as NPC).IsRolePlayingNPC);
 			}
 			finally
 			{
@@ -765,7 +766,7 @@ namespace Aura.Channel.World
 		/// <returns></returns>
 		public ICollection<Creature> GetVisibleCreaturesInRange(Entity entity, int range = VisibleRange)
 		{
-			return this.GetCreatures(a => a != entity && a.GetPosition().InRange(entity.GetPosition(), range) && !a.Conditions.Has(ConditionsA.Invisible));
+			return this.GetCreatures(a => a != entity && a.GetPosition().InRange(entity.GetPosition(), range) && !a.Conditions.Has(ConditionsA.Invisible) && !a.Temp.IsRolePlayingInvisible);
 		}
 
 		/// <summary>

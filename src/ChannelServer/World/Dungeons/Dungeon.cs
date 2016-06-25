@@ -318,7 +318,13 @@ namespace Aura.Channel.World.Dungeons
 
 			statue.Behavior = (cr, pr) =>
 			{
-				cr.Warp(this.Data.Exit);
+				if (cr is NPC && (cr as NPC).IsRolePlayingNPC)
+				{
+					cr.SetLocation(new Location(this.Data.Exit));
+					(cr.Temp.RolePlayingController as PlayerCreature).DisconnectFromNPC();
+				}
+				else
+					cr.Warp(this.Data.Exit);
 
 				if (this.Script != null)
 					this.Script.OnLeftEarly(this, cr);
@@ -756,7 +762,14 @@ namespace Aura.Channel.World.Dungeons
 		/// <param name="creature"></param>
 		public void OnPlayerEntersLobby(Creature creature)
 		{
-			var isCreator = this.Creators.Contains(creature.EntityId);
+			var crt2 = creature;
+			var npc = creature as NPC;
+			if (npc != null && (npc.IsRolePlayingNPC))
+				crt2 = npc.Temp.RolePlayingController;
+			var isCreator = this.Creators.Contains(crt2.EntityId);
+
+			foreach (var c in this.Creators)
+				Send.SystemMessage(crt2, "{0}, {1}", creature.Name, crt2.Name);
 
 			// Save location
 			// This happens whenever you enter the lobby.

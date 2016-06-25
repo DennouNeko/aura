@@ -74,7 +74,11 @@ namespace Aura.Channel.World.Dungeons
 		public void RemoveAllMonsters()
 		{
 			foreach (var creature in this.GetCreatures(a => a is NPC && !a.Has(CreatureStates.GoodNpc)))
-				this.RemoveCreature(creature);
+			{
+				NPC npc = creature as NPC;
+				if (!npc.IsRolePlayingNPC)
+					this.RemoveCreature(creature);
+			}
 		}
 
 		/// <summary>
