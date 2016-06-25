@@ -69,5 +69,11 @@ namespace Aura.Channel.World.Entities.Creatures
 		public string CookingMethod;
 
 		public object CounterSyncLock = new object();
+
+		// For Role Playing, one is a handle to a "avatar" NPC
+		public Creature RolePlayingActor;
+		public Creature RolePlayingController;
+		public bool RolePlayingHidden = false;
+		public bool IsRolePlayingInvisible { get { return RolePlayingActor as NPC != null && RolePlayingHidden; } }
 	}
 }
