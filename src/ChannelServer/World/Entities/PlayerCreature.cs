@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Aura development team - Licensed under GNU GPL
 // For more information, see license file in the main folder
 
+using Aura.Channel.Network;
 using Aura.Channel.Network.Sending;
 using Aura.Channel.World.Dungeons;
 using Aura.Data;
 using Aura.Mabi.Const;
+using Aura.Mabi.Network;
 using Aura.Shared.Util;
 using System;
 using System.Collections.Generic;
@@ -155,16 +157,117 @@ namespace Aura.Channel.World.Entities
 		}
 
 		/// <summary>
+		/// Instructs client to move to login as an NPC and warps it to specific location.
+		/// Returns false if region doesn't exist.
+		/// </summary>
+		/// <param name="actor"></param>
+		/// <param name="regionId"></param>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <param name="hideBody"></param>
+		/// <returns></returns>
+		public bool LoginAsNPC(NPC actor, int regionId, int x, int y, bool hideBody = false)
+		{
+			Log.Info("Logging in as Entity 0x{0:X}", actor.EntityId);
+			actor.SetLocation(regionId, x, y);
+			actor.Activate(CreatureStates.Initialized);
+			this.Client.Creatures.Add(actor.EntityId, actor);
+			
+			actor.Temp.RolePlayingController = this;
+			this.Temp.RolePlayingActor = actor;
+			this.Temp.RolePlayingHidden = hideBody;
+
+			var targetRegion = ChannelServer.Instance.World.GetRegion(regionId);
+			if (targetRegion == null)
+			{
+				Send.ServerMessage(this, "LoginAsNPC failed, region doesn't exist.");
+				Log.Error("PC.LoginAsNPC: Region '{0}' doesn't exist.", regionId);
+				return false;
+			}
+
+			var currentRegionId = this.RegionId;
+			var loc = new Location(currentRegionId, this.GetPosition());
+
+			if (hideBody)
+			{
+				this.Region.RemoveCreature(this);
+			}
+
+			this.LastLocation = loc;
+			this.WarpLocation = loc;
+			this.Warping = true;
+			this.Lock(Locks.Default, true);
+
+			this.Client.Controlling = actor;
+
+			// Ask client to log in as a NPC and let it know it's a "pet"
+			Send.RequestSecondaryLogin(this, actor.EntityId);
+			Send.PetRegister(this, actor);
+
+			// Make the client switch to new character
+			this.Lock(Locks.Default, true);
+			Send.RequestStartRP(this, actor.EntityId);
+
+			// Finalize the setup with warp
+			Send.EnterRegion(this, currentRegionId, loc.X, loc.Y);
+
+			Send.VehicleInfo(actor);
+
+			return true;
+		}
+
+		/// <summary>
+		/// Instructs client to stop controlling a NPC.
+		/// </summary>
+		/// <remarks>
+		/// By default it warps character back to its original location.
+		/// To change it, call creature.SetLocation() before calling this.
+		/// </remarks>
+		public void DisconnectFromNPC()
+		{
+			var actor = this.Temp.RolePlayingActor as NPC;
+			if (actor == null)
+			{
+				Send.ServerMessage(this, "Failed to disconect from NPC.");
+				Log.Error("PC.DisconnectFromNPC: RolePlayingActor is null or not a NPC");
+				return;
+			}
+
+			Send.StatUpdateDefault(this);
+
+			var apos = actor.GetPosition();
+
+			Send.RequestEndRP(this, this.EntityId, this.RegionId);
+
+			// It seems that for any character, that player could control,
+			// the end byte of EntityDisappears is 1
+			// Known cases are: Golem, Puppet, RP NPC
+			this.Client.Creatures.Remove(actor.EntityId);
+			actor.Region.RemoveCreature(actor);
+			this.Client.Controlling = this;
+
+			this.Unlock(Locks.Default, true);
+			Send.PetUnregister(this, actor);
+			Send.Disappear(actor);
+			actor.Client = new DummyClient();
+			actor.Client.Kill();
+
+			this.Temp.RolePlayingActor = null;
+			this.Temp.RolePlayingHidden = false;
+			actor.Temp.RolePlayingController = null;
+		}
+
+		/// <summary>
 		/// Updates visible creatures, sends Entities(Dis)Appear.
 		/// </summary>
 		public void LookAround()
 		{
-			if (!this.Watching)
+			if (!this.Watching || Temp.IsRolePlayingInvisible)
 				return;
 
 			lock (_lookAroundLock)
 			{
-				var currentlyVisible = this.Region.GetVisibleEntities(this);
+				var currentlyVisible = this.Region.GetVisibleEntities(this.Temp.RolePlayingActor != null ? this.Temp.RolePlayingActor : this);
 
 				var appear = currentlyVisible.Except(_visibleEntities);
 				var disappear = _visibleEntities.Except(currentlyVisible);
