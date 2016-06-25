@@ -203,6 +203,7 @@ namespace Aura.Channel.Network.Sending
 					packet.PutInt((int)stat);
 					switch (stat)
 					{
+						case Stat.Name: packet.PutString(creature.Name); break;
 						case Stat.Height: packet.PutFloat(creature.Height); break;
 						case Stat.Weight: packet.PutFloat(creature.Weight); break;
 						case Stat.Upper: packet.PutFloat(creature.Upper); break;
