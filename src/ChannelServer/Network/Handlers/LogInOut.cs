@@ -77,6 +77,7 @@ namespace Aura.Channel.Network.Handlers
 
 			Send.ChannelLoginR(client, character.EntityId);
 
+<<<<<<< HEAD
 			// Log into world
 			if (character.Has(CreatureStates.Initialized))
 			{
@@ -90,6 +91,10 @@ namespace Aura.Channel.Network.Handlers
 			}
 			// Special login to Soul Stream for new chars
 			else
+=======
+			// Special login to Soul Stream for new chars and on birthdays
+			if (!character.Has(CreatureStates.Initialized) || character.CanReceiveBirthdayPresent)
+>>>>>>> 29dd11b... Added entering Soul Stream on birthday
 			{
 				var npcEntityId = (character.IsCharacter ? MabiId.Nao : MabiId.Tin);
 				var npc = ChannelServer.Instance.World.GetCreature(npcEntityId);
@@ -100,6 +105,15 @@ namespace Aura.Channel.Network.Handlers
 				character.Activate(CreatureStates.Initialized);
 
 				Send.SpecialLogin(character, 1000, 3200, 3200, npcEntityId);
+			}
+			// Log into world
+			else
+			{
+				// Fallback for invalid region ids, like 0, dynamics, and dungeons.
+				if (character.RegionId == 0 || Math2.Between(character.RegionId, 35000, 40000) || Math2.Between(character.RegionId, 10000, 11000))
+					character.SetLocation(1, 12800, 38100);
+
+				character.Warp(character.GetLocation());
 			}
 		}
 
