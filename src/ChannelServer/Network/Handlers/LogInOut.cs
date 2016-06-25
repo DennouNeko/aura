@@ -85,8 +85,21 @@ namespace Aura.Channel.Network.Handlers
 
 			Send.ChannelLoginR(client, character.EntityId);
 
+			// Special login to Soul Stream for new chars and on birthdays
+			if (!character.Has(CreatureStates.Initialized) || character.CanReceiveBirthdayPresent)
+			{
+				var npcEntityId = (character.IsCharacter ? MabiId.Nao : MabiId.Tin);
+				var npc = ChannelServer.Instance.World.GetCreature(npcEntityId);
+				if (npc == null)
+					Log.Warning("ChannelLogin: Intro NPC not found ({0:X16}).", npcEntityId);
+
+				character.Temp.InSoulStream = true;
+				character.Activate(CreatureStates.Initialized);
+
+				Send.SpecialLogin(character, 1000, 3200, 3200, npcEntityId);
+			}
 			// Log into world
-			if (character.Has(CreatureStates.Initialized))
+			else
 			{
 				// Fallback for invalid region ids, like 0, dynamics, and dungeons.
 				// Except for NPCs. They can login directly into any region.
@@ -98,19 +111,6 @@ namespace Aura.Channel.Network.Handlers
 				var loc = character.GetLocation();
 				// Log.Info("Spawning character at {0}", loc);
 				character.Warp(loc);
-			}
-			// Special login to Soul Stream for new chars
-			else
-			{
-				var npcEntityId = (character.IsCharacter ? MabiId.Nao : MabiId.Tin);
-				var npc = ChannelServer.Instance.World.GetCreature(npcEntityId);
-				if (npc == null)
-					Log.Warning("ChannelLogin: Intro NPC not found ({0:X16}).", npcEntityId);
-
-				character.Temp.InSoulStream = true;
-				character.Activate(CreatureStates.Initialized);
-
-				Send.SpecialLogin(character, 1000, 3200, 3200, npcEntityId);
 			}
 		}
 
