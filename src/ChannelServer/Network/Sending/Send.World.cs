@@ -36,7 +36,7 @@ namespace Aura.Channel.Network.Sending
 		/// Broadcasts EntityDisappears|ItemDisappears in entity's region.
 		/// </summary>
 		/// <param name="entity"></param>
-		public static void EntityDisappears(Entity entity)
+		public static void EntityDisappears(Entity entity, bool unk = false)
 		{
 			var op = Op.EntityDisappears;
 			if (entity is Item)
@@ -44,7 +44,7 @@ namespace Aura.Channel.Network.Sending
 
 			var packet = new Packet(op, MabiId.Broadcast);
 			packet.PutLong(entity.EntityId);
-			packet.PutByte(0);
+			packet.PutByte(unk);
 
 			entity.Region.Broadcast(packet, entity, false);
 		}
