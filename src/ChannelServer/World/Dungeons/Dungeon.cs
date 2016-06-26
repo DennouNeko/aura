@@ -768,9 +768,6 @@ namespace Aura.Channel.World.Dungeons
 				crt2 = npc.Temp.RolePlayingController;
 			var isCreator = this.Creators.Contains(crt2.EntityId);
 
-			foreach (var c in this.Creators)
-				Send.SystemMessage(crt2, "{0}, {1}", creature.Name, crt2.Name);
-
 			// Save location
 			// This happens whenever you enter the lobby.
 			creature.DungeonSaveLocation = creature.GetLocation();
