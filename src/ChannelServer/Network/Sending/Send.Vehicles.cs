@@ -8,6 +8,7 @@ using System.Text;
 using Aura.Channel.World.Entities;
 using Aura.Shared.Network;
 using Aura.Mabi.Network;
+using Aura.Channel.World;
 
 namespace Aura.Channel.Network.Sending
 {
@@ -26,7 +27,10 @@ namespace Aura.Channel.Network.Sending
 			packet.PutInt(32);
 			packet.PutByte(0);
 
-			vehicle.Region.Broadcast(packet, vehicle);
+			if (vehicle.Region != Region.Limbo)
+				vehicle.Region.Broadcast(packet, vehicle);
+			else
+				vehicle.Client.Send(packet);
 		}
 	}
 }

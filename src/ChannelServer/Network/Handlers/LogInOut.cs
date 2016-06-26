@@ -48,7 +48,7 @@ namespace Aura.Channel.Network.Handlers
 			bool secondaryLogin = (packet.Peek() == PacketElementType.Byte && packet.GetByte() == 0x0b);
 			if(secondaryLogin)
 			{
-				Log.Info("ChannelLogin handler: Secondary character logging in: 0x{0:X}", characterId);
+				Log.Info("ChannelLogin handler: Secondary character logging in: 0x{0:X16}", characterId);
 			}
 
 			// Check state
@@ -109,7 +109,7 @@ namespace Aura.Channel.Network.Handlers
 				character.Activate(CreatureStates.EverEnteredWorld);
 
 				var loc = character.GetLocation();
-				// Log.Info("Spawning character at {0}", loc);
+				Log.Debug("Spawning character at {0}", loc);
 				character.Warp(loc);
 			}
 		}
@@ -156,7 +156,8 @@ namespace Aura.Channel.Network.Handlers
 
 			// Add to region
 			creature.SetLocation(creature.WarpLocation);
-			region.AddCreature(creature);
+			if(!creature.Temp.IsRolePlayingInvisible)
+				region.AddCreature(creature);
 
 			// Unlock and warp
 			creature.Unlock(Locks.Default, true);
