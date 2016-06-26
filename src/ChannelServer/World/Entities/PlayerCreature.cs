@@ -173,10 +173,6 @@ namespace Aura.Channel.World.Entities
 			actor.Activate(CreatureStates.Initialized);
 			this.Client.Creatures.Add(actor.EntityId, actor);
 			
-			actor.Temp.RolePlayingController = this;
-			this.Temp.RolePlayingActor = actor;
-			this.Temp.RolePlayingHidden = hideBody;
-
 			var targetRegion = ChannelServer.Instance.World.GetRegion(regionId);
 			if (targetRegion == null)
 			{
@@ -192,6 +188,10 @@ namespace Aura.Channel.World.Entities
 			{
 				this.Region.RemoveCreature(this);
 			}
+
+			actor.Temp.RolePlayingController = this;
+			this.Temp.RolePlayingActor = actor;
+			this.Temp.RolePlayingHidden = hideBody;
 
 			this.LastLocation = loc;
 			this.WarpLocation = loc;
@@ -210,8 +210,6 @@ namespace Aura.Channel.World.Entities
 
 			// Finalize the setup with warp
 			Send.EnterRegion(this, currentRegionId, loc.X, loc.Y);
-
-			Send.VehicleInfo(actor);
 
 			return true;
 		}
@@ -233,6 +231,11 @@ namespace Aura.Channel.World.Entities
 				return;
 			}
 
+			bool warpBack = this.Temp.IsRolePlayingInvisible;
+			var loc = this.GetLocation();
+			if(this.Region != Region.Limbo)
+				this.Region.RemoveCreature(this);
+
 			Send.StatUpdateDefault(this);
 
 			var apos = actor.GetPosition();
@@ -247,6 +250,8 @@ namespace Aura.Channel.World.Entities
 			this.Client.Controlling = this;
 
 			this.Unlock(Locks.Default, true);
+
+			actor.Dispose();
 			Send.PetUnregister(this, actor);
 			Send.Disappear(actor);
 			actor.Client = new DummyClient();
@@ -255,6 +260,11 @@ namespace Aura.Channel.World.Entities
 			this.Temp.RolePlayingActor = null;
 			this.Temp.RolePlayingHidden = false;
 			actor.Temp.RolePlayingController = null;
+
+			if(warpBack)
+			{
+				this.Warp(loc);
+			}
 		}
 
 		/// <summary>
