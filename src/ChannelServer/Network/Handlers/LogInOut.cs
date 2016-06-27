@@ -55,6 +55,9 @@ namespace Aura.Channel.Network.Handlers
 			if (client.State != ClientState.LoggingIn && !secondaryLogin)
 				return;
 
+			// TODO: Extra security
+			// Verify if account names and session keys match between sessions?
+
 			// Check account
 			var account = ChannelServer.Instance.Database.GetAccount(accountId);
 			if (account == null || account.SessionKey != sessionKey)

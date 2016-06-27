@@ -66,7 +66,7 @@ namespace Aura.Mabi.Network
 		public const int DisconnectRequest = 0x4E24;
 		public const int DisconnectRequestR = 0x4E25;
 		public const int RequestClientDisconnect = 0x4E26;
-        public const int RequestClientSecondaryLogin = 0x4E29;
+		public const int RequestClientSecondaryLogin = 0x4E29;
 		public const int Disappear = 0x4E2A;
 		public const int SwitchChannel = 0x4E32;
 		public const int SwitchChannelR = 0x4E33;
@@ -440,8 +440,8 @@ namespace Aura.Mabi.Network
 
 		public const int PetRegister = 0x9024;
 		public const int PetUnregister = 0x9025;
-        public const int RequestClientStartRP = 0x902A;
-        public const int RequestClientEndRP = 0x902B;
+		public const int RequestClientStartRP = 0x902A;
+		public const int RequestClientEndRP = 0x902B;
 		public const int SummonPet = 0x902C;
 		public const int SummonPetR = 0x902D;
 		public const int UnsummonPet = 0x9031;
