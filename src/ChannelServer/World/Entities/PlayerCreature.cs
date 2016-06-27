@@ -168,10 +168,7 @@ namespace Aura.Channel.World.Entities
 		/// <returns></returns>
 		public bool LoginAsNPC(NPC actor, int regionId, int x, int y, bool hideBody = false)
 		{
-			Log.Info("Logging in as Entity 0x{0:X}", actor.EntityId);
-			actor.SetLocation(regionId, x, y);
-			actor.Activate(CreatureStates.Initialized);
-			this.Client.Creatures.Add(actor.EntityId, actor);
+			Log.Debug("Logging in as {1} 0x{0:X16}", actor.EntityId, actor.Name);
 			
 			var targetRegion = ChannelServer.Instance.World.GetRegion(regionId);
 			if (targetRegion == null)
@@ -181,6 +178,14 @@ namespace Aura.Channel.World.Entities
 				return false;
 			}
 
+			actor.SetLocation(regionId, x, y);
+			actor.Activate(CreatureStates.Initialized);
+			this.Client.Creatures.Add(actor.EntityId, actor);
+
+			actor.Temp.RolePlayingController = this;
+			this.Temp.RolePlayingActor = actor;
+			this.Temp.RolePlayingHidden = hideBody;
+
 			var currentRegionId = this.RegionId;
 			var loc = new Location(currentRegionId, this.GetPosition());
 
@@ -188,10 +193,6 @@ namespace Aura.Channel.World.Entities
 			{
 				this.Region.RemoveCreature(this);
 			}
-
-			actor.Temp.RolePlayingController = this;
-			this.Temp.RolePlayingActor = actor;
-			this.Temp.RolePlayingHidden = hideBody;
 
 			this.LastLocation = loc;
 			this.WarpLocation = loc;
@@ -210,6 +211,8 @@ namespace Aura.Channel.World.Entities
 
 			// Finalize the setup with warp
 			Send.EnterRegion(this, currentRegionId, loc.X, loc.Y);
+
+			Send.VehicleInfo(actor);
 
 			return true;
 		}

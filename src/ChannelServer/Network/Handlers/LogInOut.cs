@@ -70,12 +70,12 @@ namespace Aura.Channel.Network.Handlers
 			// Check character
 			var character = secondaryLogin ? client.Creatures[characterId] : account.GetCharacterOrPetSafe(characterId);
 
-			// Free premium
-			account.PremiumServices.EvaluateFreeServices(ChannelServer.Instance.Conf.Premium);
-
-			client.Account = account;
 			if (!secondaryLogin)
 			{
+				// Free premium
+				account.PremiumServices.EvaluateFreeServices(ChannelServer.Instance.Conf.Premium);
+
+				client.Account = account;
 				client.Controlling = character;
 				client.Creatures.Add(character.EntityId, character);
 			}
@@ -86,8 +86,9 @@ namespace Aura.Channel.Network.Handlers
 			Send.ChannelLoginR(client, character.EntityId);
 
 			// Special login to Soul Stream for new chars and on birthdays
-			if (!character.Has(CreatureStates.Initialized) || character.CanReceiveBirthdayPresent)
+			if (!secondaryLogin && (!character.Has(CreatureStates.Initialized) || character.CanReceiveBirthdayPresent))
 			{
+				Log.Debug("Spawning character at Soul Stream.");
 				var npcEntityId = (character.IsCharacter ? MabiId.Nao : MabiId.Tin);
 				var npc = ChannelServer.Instance.World.GetCreature(npcEntityId);
 				if (npc == null)
@@ -321,6 +322,7 @@ namespace Aura.Channel.Network.Handlers
 			var unk1 = packet.GetByte(); // 1 | 2 (maybe login vs exit?)
 
 			Log.Info("'{0}' is closing the connection. Saving...", client.Account.Id);
+			Log.Debug("Unk was {0}", unk1);
 
 			client.CleanUp();
 
