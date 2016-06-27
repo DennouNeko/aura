@@ -8,6 +8,8 @@
 
 public class NaoScript : NpcScript
 {
+	int privateStoryCount;
+
 	public override void Load()
 	{
 		SetRace(1);
@@ -334,6 +336,9 @@ public class NaoScript : NpcScript
 	{
 		switch (keyword)
 		{
+			// Gifts and clothes
+			// --------------------------------------------------------------
+
 			case "present_to_nao":
 				await KeywordPresentToNao();
 				break;
@@ -514,9 +519,140 @@ public class NaoScript : NpcScript
 					Msg(L("(Missing dialog: Nao responding to not wearing Farming Outfit."));
 				break;
 
+			// Breast
+			// http://mabination.com/threads/85165-quot-Breast-quot-and-other-keywords.
+			// --------------------------------------------------------------
+
+			case "nao_blacksuit":
+				GiveKeyword("breast");
+
+				Msg(L("I really like these clothes.<br/>I think the skirt is sort of erotic but, despite the appearance, it's very comfortable.<br/>But...the chest is probably a bit tight."));
+				break;
+
+			case "breast":
+				RemoveKeyword("breast");
+
+				Msg(L("Uhm... <username/>, this discussion is a little..."));
+				Msg(Hide.Name, L("(Nao is blushing uncomfortably.)"));
+				Msg(L("...<p/>......<p/>A long time ago my friends would poke fun at me for that like you...<br/>It makes those friends spring to mind.<br/>In some ways it's similar to those feelings after all..."));
+				Msg(L("I don't think they had any ill intent when they said it.<br/>Honestly, because that was thought of me ever since I was a child,<br/>I had a complex about it."));
+				Msg(L("Do you think that way too, <username/>?"), Button(L("They look big to me"), "@big"), Button(L("It is not like that"), "@notlikethat"), Button(L("I think it is adorable"), "@adorable"), Button(L("They are not all that big"), "@notbig"), Button(L("Can I touch them just once?"), "@touch"));
+
+				switch (await Select())
+				{
+					case "@big":
+						NPC.ModifyFavor(Player, -3);
+						Msg(L("...<br/>You really do think that way, huh? Fuu......<br/>Even though I didn't fatten up in other places..."));
+						break;
+
+					case "@notlikethat":
+						NPC.ModifyFavor(Player, +3);
+						Msg(Hide.Name, L("(After hearing that, Nao smiled cutely while avoiding my eyes.)"));
+						Msg(L("Thank you for giving me courage. There's nothing else to really say..."));
+						break;
+
+					case "@adorable":
+						NPC.ModifyFavor(Player, +1);
+						Msg(Hide.Name, L("(Nao looked surprised after hearing that.)"));
+						Msg(L("Umm... r-really? Thank you. That made me a little more confident."));
+						break;
+
+					case "@notbig":
+						NPC.ModifyFavor(Player, -7);
+						Msg(Hide.Name, L("(After hearing that, Nao looked a little displeased and avoided my eyes.)"));
+						Msg(L("I-is that so? ...sh-shall we stop this conversation now?"));
+						break;
+
+					case "@touch":
+						NPC.ModifyFavor(Player, -10);
+						Msg(L("Whaaa!! <username/>! What do you think you're saying!? Th-that could never happen!"));
+						Msg(Hide.Name, L("(Nao looks really angry.)"));
+						Msg(L("...<p/>...Ah, I got so upset, sorry... I went overboard, huh..."));
+						break;
+				}
+				break;
+
+			// Others
+			// --------------------------------------------------------------
+
+			case "personal_info":
+				switch (privateStoryCount)
+				{
+					case 0:
+						Msg(L("My full name is 'Nao Mariota Pryderi'.<br/>I know it is not the easiest name to pronounce.<br/>Don't worry, <username/>, you can just call me Nao."));
+						break;
+
+					case 1:
+						Msg(L("If you right-click and drag your cursor during the conversation,<br/>you can view different angles. You are staring at me while we're talking,<br/>and honestly, it's a little embarrassing. Please roll down the<br/>mouse wheel to zoom out and take a few steps back."));
+						break;
+
+					case 2:
+						Msg(L("I believe everyone should cultivate his or her own unique style instead of simply following trends.<br/>I'm not just talking about hair style or fashion. I'm talking about lifestyle.<br/>It's about doing what you want to do, in a style that's uniquely yours."));
+						break;
+
+					case 3:
+						GiveKeyword("nao_owl");
+						Msg(L("I have a pet owl. He's a great friend that takes care of many things for me."));
+						break;
+
+					case 4:
+						Msg(L("I love to exchange gifts.<br/>I can tell from the gift how the other person really thinks of me.<br/>The people in Erinn are very fond of exchanging gifts."));
+						Msg(L("<username/>, what's your opinion on exchanging gifts with others?<br/>Do you like it?"), Button(L("Of course, I do!"), "@yes"), Button(L("I like receiving gifts."), "@receiving"), Button(L("If it is someone I like, then yes."), "@like"), Button(L("I think it is a waste."), "@waste"), Button(L("No, not really."), "@no"));
+
+						switch (await Select())
+						{
+							case "@yes":
+								Msg(L("Wow! I knew it! I think you and I have something in common.<br/>Personally, I feel that people from other worlds are<br/>generally not so used to the idea of exchanging gifts.<br/>I even heard it from some people that they<br/>were surprised to hear such a question."));
+								break;
+
+							case "@receiving":
+							case "@like":
+								Msg(L("That's an interesting answer. If you're currently with someone,<br/>then I definitely envy that lucky person.<br/>If not, then I sincerely hope you'll find someone soon."));
+								break;
+
+							case "@waste":
+								Msg(L("What? Really? I am sorry. I shouldn't have asked."));
+								break;
+
+							case "@no":
+								Msg(L("Oh, I see. But I'm sure you will change your mind<br/>if someone surprises you with an unexpected gift."));
+								break;
+						}
+						break;
+
+					case 5:
+						GiveKeyword("nao_friend");
+						Msg(L("A few years ago, I was locked in a dungeon by the evil Fomor.<br/>I do not ever want to go near a dungeon now...<br/>I don't even want to think about it.<br/>Fortunately, a friend of mine rescued me from there."));
+						Msg(L("Dungeons are very dark and dangerous, but some claim that they<br/>are some of the best places for training and adrenaline rush.<br/>The power of the evil Fomors can change a dungeon every time it's visited,<br/>but that is the exact reason why the daredevil adventurers who prefer constant<br/>changes are that much more attracted to dungeons."));
+						break;
+
+					case 6:
+						Msg(L("Perhaps those that aspire to quickly become the most powerful usually<br/>end up unhappy and unsatisfied as their lust for power grows.<br/>My friend was one of those that constantly pursued limitless power,<br/>and he had it at the very end. Unfortunately,<br/>that was the seed that brought his downfall in the end.<p/>....."));
+						break;
+
+					case 7:
+						GiveKeyword("nao_blacksuit");
+						Msg(L("There are some people who suspect I might be one of the Fomors because<br/>of my black dress. I mean, what I wear is none of their business,<br/>but someone even speculated that I was the messenger of death.<br/>Honestly, I felt really weird when I heard that."));
+						Msg(L("These days, I don't even know who I am anymore.<br/>Maybe I really am one of them, you know."));
+						Msg(L("...<p/>Please don't tell me you believe that..."));
+						break;
+
+					case 8:
+						Msg(L("(Missing dialog: Last response to Nao's Private Story."));
+						break;
+				}
+
+				if (privateStoryCount < 8)
+					privateStoryCount++;
+
+				break;
+
+			// Default
+			// --------------------------------------------------------------
+
 			default:
 				RndMsg(
-					L("I don't know anything about that.") // Unofficial
+					L("Ummm...why don't we talk about something else?")
 				);
 				break;
 		}
