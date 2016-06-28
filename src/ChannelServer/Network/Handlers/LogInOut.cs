@@ -71,8 +71,7 @@ namespace Aura.Channel.Network.Handlers
 			}
 
 			// Check character
-			var character = secondaryLogin ? client.Creatures[characterId] : account.GetCharacterOrPetSafe(characterId);
-
+var character = secondaryLogin ? client.Creatures[characterId] : account.GetCharacterOrPetSafe(characterId);
 			if (!secondaryLogin)
 			{
 				// Free premium
@@ -85,6 +84,16 @@ namespace Aura.Channel.Network.Handlers
 			character.Client = client;
 
 			client.State = ClientState.LoggedIn;
+
+			// Per-character specific initialization
+			NPC npcchar = character as NPC;
+			if (npcchar != null && npcchar.OnNPCLoggedIn != null)
+			{
+				// Seems like officials send here packet-per-packet adding equipment,
+				// skills and probably other initialization info for RP NPCs
+				// Long story short, a lot of StatUpdate, SkillRankUp, ItemNew, etc. packets
+				npcchar.OnNPCLoggedIn();
+			}
 
 			Send.ChannelLoginR(client, character.EntityId);
 
@@ -236,6 +245,9 @@ namespace Aura.Channel.Network.Handlers
 			// Infamous 5209, aka char info
 			Send.ChannelCharacterInfoRequestR(client, creature);
 
+			// Send any necessary "feature enabled" packets, grant extra items, update quests, etc.
+			ChannelServer.Instance.Events.OnCreatureConnecting(creature);
+
 			// Special treatment for pets
 			if (creature.Master != null)
 			{
@@ -306,8 +318,19 @@ namespace Aura.Channel.Network.Handlers
 			// Update Pon
 			Send.PointsUpdate(creature, creature.Points);
 
+			// Send UrlUpdate packets?
+			// - UrlUpdateChronicle
+			// - UrlUpdateAdvertise
+			// - UrlUpdateGuestbook
+			// - UrlUpdatePvp
+			// - UrlUpdateDungeonBoard
+
 			// Update dead menu, in case creature is dead
 			creature.DeadMenu.Update();
+
+			// Any extra ChannelInfo initialization from scripts
+			// Actual first update of features
+			ChannelServer.Instance.Events.OnCreatureConnected(creature);
 		}
 
 		/// <summary>
