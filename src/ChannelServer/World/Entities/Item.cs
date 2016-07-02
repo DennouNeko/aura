@@ -344,6 +344,19 @@ namespace Aura.Channel.World.Entities
 		public bool IsBow { get { return this.HasTag("/bow/|/bow01|/crossbow/"); } }
 
 		/// <summary>
+		/// Returns true if item can be blessed.
+		/// </summary>
+		public bool IsBlessable
+		{
+			get
+			{
+				return
+					(this.HasTag("/equip/") && !this.HasTag("/not_bless/")) &&
+					(this.Info.Pocket != Pocket.Magazine1 && this.Info.Pocket != Pocket.Magazine2);
+			}
+		}
+
+		/// <summary>
 		/// New item based on item id.
 		/// </summary>
 		/// <param name="itemId"></param>
@@ -1227,6 +1240,30 @@ namespace Aura.Channel.World.Entities
 			var result = (int)(5.0 / Math.Sqrt(duraPoints) * price);
 			if (result == 0)
 				result = 1;
+
+			// Increase for collection upgrades
+			var collectionSpeed = this.MetaData1.GetInt("CTSPEED");
+			var collectionBonus = this.MetaData1.GetShort("CTBONUS");
+
+			if (collectionSpeed != 0)
+			{
+				if (collectionSpeed < 250)
+					result = (int)(result * 1.7f);
+				else if (collectionSpeed < 500)
+					result = (int)(result * 1.7f * 1.7f);
+				else if (collectionSpeed < 750)
+					result = (int)(result * 1.7f * 1.7f * 1.7f);
+				else
+					result = (int)(result * 1.7f * 1.7f * 1.7f * 1.7f);
+			}
+
+			if (collectionSpeed > 1000 || collectionBonus != 0)
+			{
+				if (this.Info.Id == 40023) // Gathering Knife
+					result *= 10;
+				else
+					result *= 2;
+			}
 
 			return result * points;
 		}

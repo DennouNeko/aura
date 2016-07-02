@@ -22,9 +22,6 @@ public class ElenScript : NpcScript
 		EquipItem(Pocket.Head, 18024, 0x007D2224, 0x00FFFFFF, 0x000088CD);
 		EquipItem(Pocket.RightHand1, 40024, 0x00FACB5F, 0x004F3C26, 0x00FAB052);
 
-		AddGreeting(0, "Welcome! But... I've never seen you around here before.");
-		AddGreeting(0, "You must be quite interested in the blacksmith work.");
-
 		AddPhrase("Lets see... I still have some left..");
 		AddPhrase("Nothing is free!");
 		AddPhrase("Grandpa worries too much.");
@@ -65,19 +62,99 @@ public class ElenScript : NpcScript
 				return;
 
 			case "@repair":
-				Msg("Is there something you want to repair?<br/>I'm far from being as good as my grandpa,<br/>but I am a blacksmith myself, so I'll do my best to live up to the title.");
-				Msg("Unimplemented");
-				Msg("If you don't trust me, talk to grandpa.<br/>He's the best blacksmith in town.");
+				Msg(L("Is there something you want to repair?<br/>I'm far from being as good as my grandpa,<br/>but I am a blacksmith myself, so I'll do my best to live up to the title.<repair rate='90' stringid='(*/smith_repairable/*)' />"));
+
+				while (true)
+				{
+					var repair = await Select();
+
+					if (!repair.StartsWith("@repair"))
+						break;
+
+					var result = Repair(repair, 90, "/smith_repairable/");
+					if (!result.HadGold)
+					{
+						RndMsg(
+							L("Do you have the Gold for it?<br/>I can't do it for free with my grandpa watching."),
+							L("I don't know...<br/>Do you have the Gold for it?"),
+							L("Do you have the repair fee?")
+						);
+					}
+					else if (result.Points == 1)
+					{
+						if (result.Fails == 0)
+							RndMsg(
+								L("Repair is finished for 1 point."),
+								L("1 point has been successfully repaired."),
+								L("1 Durability point has been repaired.")
+							);
+						else
+							Msg(L("(Missing dialog: Elen failing 1 point repair.)"));
+					}
+					else if (result.Points > 1)
+					{
+						if (result.Fails == 0)
+							RndMsg(
+								L("It's been completely repaired.<br/>Perhaps this would impress my grandpa."),
+								L("The repair is perfect."),
+								L("The repair work is completely done!")
+							);
+						else
+							Msg(string.Format(L("(Missing dialog: Elen failing multi point repair, fails: {0}, successes: {1}.)"), result.Fails, result.Successes));
+					}
+				}
+
+				Msg(L("If you don't trust me, talk to grandpa.<br/>He's the best blacksmith in town.<repair hide='true'/>"));
 				break;
 
 			case "@upgrade":
-				Msg("Mmm? You are asking me for an item modification?<br/>Ha ha. If you are, <username/>,<br/>I'll do it just for you!<br/>You know that armor can't be worn by anyone else once it's modified, right?");
-				Msg("Unimplemented");
-				Msg("Then, can I get back to my other tasks?<br/>Just let me know if you have something else to modify.");
+				Msg(L("Mmm? You are asking me for an item modification?<br/>Ha ha. If you are, <username/>,<br/>I'll do it just for you!<br/>You know that armor can't be worn by anyone else once it's modified, right?<upgrade />"));
+
+				while (true)
+				{
+					var reply = await Select();
+
+					if (!reply.StartsWith("@upgrade:"))
+						break;
+
+					var result = Upgrade(reply);
+					if (result.Success)
+						Msg(L("Ta-da! The modification was successful! How about that? Are you impressed? Cool!<br/>Anything else you want to modify?"));
+					else
+						Msg(L("(Error)"));
+				}
+
+				Msg(L("Then, can I get back to my other tasks?<br/>Just let me know if you have something else to modify.<br/><upgrade hide='true'/>"));
 				break;
 		}
 
 		End("Thank you, <npcname/>. I'll see you later!");
+	}
+
+	private void Greet()
+	{
+		if (Memory <= 0)
+		{
+			Msg(FavorExpression(), L("Welcome! But... I've never seen you around here before."));
+		}
+		else if (Memory == 1)
+		{
+			Msg(FavorExpression(), L("You must be quite interested in the blacksmith work."));
+		}
+		else if (Memory == 2)
+		{
+			Msg(FavorExpression(), L("(Missing)"));
+		}
+		else if (Memory <= 6)
+		{
+			Msg(FavorExpression(), L("(Missing)"));
+		}
+		else
+		{
+			Msg(FavorExpression(), L("(Missing)"));
+		}
+
+		UpdateRelationAfterGreet();
 	}
 
 	protected override async Task Keywords(string keyword)

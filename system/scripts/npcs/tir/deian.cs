@@ -14,6 +14,7 @@ public class DeianScript : NpcScript
 		SetFace(skinColor: 23, eyeType: 19, eyeColor: 0, mouthType: 0);
 		SetStand("human/male/anim/male_natural_stand_npc_deian");
 		SetLocation(1, 27953, 42287, 158);
+		SetGiftWeights(beauty: 0, individuality: 1, luxury: -1, toughness: 0, utility: 2, rarity: 1, meaning: -1, adult: -1, maniac: 2, anime: 2, sexy: 2);
 
 		EquipItem(Pocket.Face, 4900, 0x00FFDC53, 0x00FFB682, 0x00A8DDD3);
 		EquipItem(Pocket.Hair, 4156, 0x00E7CB60, 0x00E7CB60, 0x00E7CB60);
@@ -22,10 +23,6 @@ public class DeianScript : NpcScript
 		EquipItem(Pocket.Shoe, 17287, 0x004C392A, 0x00000000, 0x00000000);
 		EquipItem(Pocket.Head, 18407, 0x00343F2D, 0x00000000, 0x00000000);
 		EquipItem(Pocket.RightHand1, 40001, 0x00755748, 0x005E9A49, 0x005E9A49);
-
-		AddGreeting(0, "Nice to meet you, I am Deian.<br/>You don't look that old, maybe a couple of years older than I am?<br/>Let's just say we're the same age. You don't mind do ya?");
-		AddGreeting(1, "Nice to meet you again.");
-		//AddGreeting(2, "Welcome, <username />"); // Not sure
 
 		AddPhrase("Another day... another boring day in the countryside.");
 		AddPhrase("Baa! Baa!");
@@ -42,12 +39,7 @@ public class DeianScript : NpcScript
 	{
 		SetBgm("NPC_Deian.mp3");
 
-		await Intro(
-			"An adolescent boy carrying a shepherd's staff watches over a flock of sheep.",
-			"Now and then, he hollers at some sheep that've wandered too far, and his voice cracks every time.",
-			"His skin is tanned and his muscles are strong from his daily work.",
-			"Though he's young, he peers at you with so much confidence it almost seems like arrogance."
-		);
+		await Intro(L("An adolescent boy carrying a shepherd's staff watches over a flock of sheep.<br/>Now and then, he hollers at some sheep that've wandered too far, and his voice cracks every time.<br/>His skin is tanned and his muscles are strong from his daily work.<br/>Though he's young, he peers at you with so much confidence it almost seems like arrogance."));
 
 		Msg("What can I do for you?", Button("Start a Conversation", "@talk"), Button("Shop", "@shop"), Button("Modify Item", "@upgrade"));
 
@@ -75,7 +67,11 @@ public class DeianScript : NpcScript
 					}
 				}
 
-				if (Title == 11002)
+				if (Title == 11001)
+				{
+					Msg("Hey! <username/>, that's my job you just did! What am I supposed to do now?<br/>Man! There must be something more heroic that I could do as a warrior...");
+				}
+				else if (Title == 11002)
 				{
 					Msg("Eh? <username/>...<br/>You've become the Guardian of Erinn?<br/>So fast!<br/>I'm still trying to become a Warrior!");
 					Msg("Good for you.<br/>Just make sure you leave me some work to do for when I become a Warrior.<br/>Wow, must've been tough.");
@@ -110,7 +106,33 @@ public class DeianScript : NpcScript
 				break;
 		}
 
-		End();
+		End("(You ended your conversation with Deian.)");
+	}
+
+	private void Greet()
+	{
+		if (Memory <= 0)
+		{
+			Msg(FavorExpression(), L("Nice to meet you, I am Deian.<br/>You don't look that old, maybe a couple of years older than I am?<br/>Let's just say we're the same age. You don't mind do ya?"));
+		}
+		else if (Memory == 1)
+		{
+			Msg(FavorExpression(), L("Nice to meet you again."));
+		}
+		else if (Memory == 2)
+		{
+			Msg(FavorExpression(), L("<username/>, right? I remember you. How could I forget that face..."));
+		}
+		else if (Memory <= 6)
+		{
+			Msg(FavorExpression(), L("Welcome, <username/>."));
+		}
+		else
+		{
+			Msg(FavorExpression(), L("I've been seeing you a lot, <username/>.<br/>Do you like me or something?"));
+		}
+
+		UpdateRelationAfterGreet();
 	}
 
 	protected override async Task Keywords(string keyword)
@@ -118,15 +140,15 @@ public class DeianScript : NpcScript
 		switch (keyword)
 		{
 			case "personal_info":
-				Msg("Yeah, yeah. I'm a mere shepherd...for now.<br/>But I will soon be a mighty warrior!<br/>");
-				ModifyRelation(Random(2), 0, Random(2));
+				Msg(FavorExpression(), "Yeah, yeah. I'm a mere shepherd...for now.<br/>But I will soon be a mighty warrior!<br/>");
+				ModifyRelation(Random(2), 0, Random(3));
 				break;
 
 			case "rumor":
 				GiveKeyword("pool");
-				Msg("Some people should have been born as fish.<br/>They can't pass water without diving right in.<br/>I wish they'd stop.");
+				Msg(FavorExpression(), "Some people should have been born as fish.<br/>They can't pass water without diving right in.<br/>I wish they'd stop.");
 				Msg("Not long ago, someone jumped into the reservoir<br/>and made a huge mess.<br/>Guess who got stuck cleaning it up?<br/>Sooo not my job.");
-				ModifyRelation(Random(2), 0, Random(2));
+				ModifyRelation(Random(2), 0, Random(3));
 
 				/* Message from Field Boss Spawns
 				Msg("<face name='normal'/>A monster will show up in Eastern Prairie of the Meadow at 3Days later Dawn!<br/>Gigantic White Wolf will show up!<br/>Hey, I said I'm not lying!");
@@ -309,12 +331,31 @@ public class DeianScript : NpcScript
 				Msg("You know it's on your Minimap...<br/>Asking all these foolish questions...<br/>What's your problem?");
 				break;
 
+			case "bow":
+				GiveKeyword("shop_smith");
+				Msg("You can find a lot of bows at the Blacksmith's Shop.<br/>There's one nearby.<br/>If Ferghus is drunk, it might be possible to sneak one out.");
+				Msg("I'm just kidding! You weren't really thinking about doing that...were you?");
+				break;
+
 			case "lute":
 				Msg("Oh... I want a red lute.<br/>Why don't you buy me one when you get rich, yea?");
 				break;
 
 			case "complicity":
 				Msg("Welcome to the real world...");
+				break;
+
+			case "tir_na_nog":
+				Msg("Haha.... Tir Na Nog?<br/>Surely you don't really believe that place exists?<br/>Adults just make up stories to control their children.<br/>Don't take it so seriously.");
+				break;
+
+			case "mabinogi":
+				Msg("You think I'm a dumb shepherd, huh?<br/>Don't look down on me, bro. I know what you're talking about!");
+				Msg("It's uh...<br/>It's a song those bards sing all the time! Right? Right?<br/>Psh. I know more than you think!");
+				break;
+
+			case "musicsheet":
+				Msg("Music Score? I heard you need it to play music.<br/>I am interested in instruments but not so much in Music Scores.");
 				break;
 
 			default:
@@ -328,7 +369,7 @@ public class DeianScript : NpcScript
 					"Sometimes, I'm just not in the mood to answer questions.",
 					"Don't be ridiculous. It's not that I don't know, I just don't want to tell you."
 				);
-				ModifyRelation(0, 0, Random(2));
+				ModifyRelation(0, 0, Random(3));
 				break;
 		}
 	}
@@ -338,7 +379,7 @@ public class DeianShop : NpcShopScript
 {
 	public override void Setup()
 	{
-		AddQuest("Party Quest", 100007, 5); // [PQ] Hunt Gray Wolves (10)
+		AddQuest("Party Quest", 100007, 5);  // [PQ] Hunt Gray Wolves (10)
 		AddQuest("Party Quest", 100008, 20); // [PQ] Hunt Gray Wolves (30)
 		AddQuest("Party Quest", 100009, 15); // [PQ] Hunt Black Wolves (10)
 		AddQuest("Party Quest", 100010, 50); // [PQ] Hunt Black Wolves (30)

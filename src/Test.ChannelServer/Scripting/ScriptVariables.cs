@@ -58,6 +58,7 @@ namespace Aura.Tests.Channel.Scripting
 			Assert.Equal("two2", mgr["Test4"]);
 		}
 
+#if !__MonoCS__
 		[Fact]
 		public void Get()
 		{
@@ -93,5 +94,6 @@ namespace Aura.Tests.Channel.Scripting
 
 			Assert.Throws<RuntimeBinderException>(() => { int test4 = mgr["Test4"]; });
 		}
+#endif
 	}
 }

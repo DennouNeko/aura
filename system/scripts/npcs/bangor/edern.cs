@@ -22,8 +22,6 @@ public class EdernScript : NpcScript
 		EquipItem(Pocket.Shoe, 17504, 0x002B1C09, 0x00857756, 0x00321007);
 		EquipItem(Pocket.RightHand1, 40024, 0x00FACB5F, 0x004F3C26, 0x00FAB052);
 
-		AddGreeting(0, "Welcome! You look familiar.");
-
 		AddPhrase("A true blacksmith never complains.");
 		AddPhrase("Hahaha...");
 		AddPhrase("Hey! Don't just stand there and make me nervous. If you've got something to say, say it!");
@@ -68,19 +66,99 @@ public class EdernScript : NpcScript
 				return;
 
 			case "@repair":
-				Msg("If it's not urgent, would you mind talking to Elen?<br/>If it's something you particularly treasure, I can repair it myself.");
-				Msg("Unimplemented");
-				Msg("You can figure out a person by looking at his equipment.");
+				Msg(L("If it's not urgent, would you mind talking to Elen?<br/>If it's something you particularly treasure, I can repair it myself.<br/><repair rate='98' stringid='(*/smith_repairable/*)' />"));
+
+				while (true)
+				{
+					var repair = await Select();
+
+					if (!repair.StartsWith("@repair"))
+						break;
+
+					var result = Repair(repair, 98, "/smith_repairable/");
+					if (!result.HadGold)
+					{
+						RndMsg(
+							L("Before we start, do you have the Gold for it?"),
+							L("It's good that you cherish your equipment,<br/>but you should have at least prepared the fee!"),
+							L("The Gold you have isn't enough for the repair job.<br/>Bring more Gold.")
+						);
+					}
+					else if (result.Points == 1)
+					{
+						if (result.Fails == 0)
+							RndMsg(
+								L("I've finished repairing 1 point of Durability. It's been done well."),
+								L("There, 1 point of Durability has been repaired."),
+								L("I've repaired 1 point of Durability.")
+							);
+						else
+							Msg(L("(Missing dialog: Edern failing 1 point repair.)"));
+					}
+					else if (result.Points > 1)
+					{
+						if (result.Fails == 0)
+							RndMsg(
+								L("The repair has been perfect.<br/>There, are you satisfied?"),
+								L("I'm on a roll today!<br/>The repair has been very successful."),
+								L("There, the repair job is finished. It's perfect.")
+							);
+						else
+							Msg(string.Format(L("(Missing dialog: Edern failing multi point repair, fails: {0}, successes: {1}.)"), result.Fails, result.Successes));
+					}
+				}
+
+				Msg(L("You can figure out a person by looking at his equipment.<br/>Please do be careful with your equipment.<repair hide='true'/>"));
 				break;
 
 			case "@upgrade":
-				Msg("Then give me the item to be modified.<br/>I ask this for your own good, but, while the weapons are not affected,<br/>armor that has been modified will be yours only. You know that, right?<br/>It won't fit anyone else.");
-				Msg("Unimplemented");
-				Msg("Then come back to me when you have something you want to modify.");
+				Msg(L("Then give me the item to be modified.<br/>I ask this for your own good, but, while the weapons are not affected,<br/>armor that has been modified will be yours only. You know that, right?<br/>It won't fit anyone else. <upgrade />"));
+
+				while (true)
+				{
+					var reply = await Select();
+
+					if (!reply.StartsWith("@upgrade:"))
+						break;
+
+					var result = Upgrade(reply);
+					if (result.Success)
+						Msg(L("It has been modified as you requested.<br/>Is there anything else you want to modify further?"));
+					else
+						Msg(L("(Error)"));
+				}
+
+				Msg(L("Then come back to me when you have something you want to modify.<br/><upgrade hide='true'/>"));
 				break;
 		}
 
 		End("Thank you, <npcname/>. I'll see you later!");
+	}
+
+	private void Greet()
+	{
+		if (Memory <= 0)
+		{
+			Msg(FavorExpression(), L("Welcome! You look familiar."));
+		}
+		else if (Memory == 1)
+		{
+			Msg(FavorExpression(), L("(Missing)"));
+		}
+		else if (Memory == 2)
+		{
+			Msg(FavorExpression(), L("(Missing)"));
+		}
+		else if (Memory <= 6)
+		{
+			Msg(FavorExpression(), L("(Missing)"));
+		}
+		else
+		{
+			Msg(FavorExpression(), L("(Missing)"));
+		}
+
+		UpdateRelationAfterGreet();
 	}
 
 	protected override async Task Keywords(string keyword)
