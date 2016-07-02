@@ -320,8 +320,9 @@ namespace Aura.Channel.World.Dungeons
 			{
 				if (cr is NPC && (cr as NPC).IsRolePlayingNPC)
 				{
-					cr.SetLocation(new Location(this.Data.Exit));
-					(cr.Temp.RolePlayingController as PlayerCreature).DisconnectFromNPC();
+					var plr = cr.Temp.RolePlayingController as PlayerCreature;
+					plr.SetLocation(new Location(this.Data.Exit));
+					plr.DisconnectFromNPC();
 				}
 				else
 					cr.Warp(this.Data.Exit);
