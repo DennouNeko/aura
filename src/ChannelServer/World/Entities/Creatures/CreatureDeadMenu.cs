@@ -25,6 +25,11 @@ namespace Aura.Channel.World.Entities.Creatures
 			this.Options |= option;
 		}
 
+		public void Remove(ReviveOptions option)
+		{
+			this.Options &= ~option;
+		}
+
 		public bool Has(ReviveOptions option)
 		{
 			return ((this.Options & option) != 0);
@@ -98,6 +103,10 @@ namespace Aura.Channel.World.Entities.Creatures
 				// Dungeons
 				if (this.Creature.Region is DungeonRegion)
 				{
+					var npc = this.Creature as NPC;
+					if (npc != null && npc.IsRolePlayingNPC)
+						this.Remove(ReviveOptions.Town);
+						
 					this.Add(ReviveOptions.DungeonEntrance);
 
 					// Show statue option only if there is a statue on this floor

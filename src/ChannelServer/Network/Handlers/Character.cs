@@ -12,6 +12,8 @@ using Aura.Mabi.Const;
 using Aura.Channel.World.Entities.Creatures;
 using Aura.Mabi.Network;
 using Aura.Channel.World.Dungeons;
+using Aura.Channel.World.Entities;
+using Aura.Channel.World;
 
 namespace Aura.Channel.Network.Handlers
 {
@@ -109,8 +111,18 @@ namespace Aura.Channel.Network.Handlers
 						break;
 					}
 
-					creature.Warp(dungeonRegion.Dungeon.Data.Exit);
-					creature.Revive(option);
+					var npc = creature as NPC;
+					if (npc != null && npc.IsRolePlayingNPC)
+					{
+						var pc = npc.Temp.RolePlayingController as PlayerCreature;
+						pc.SetLocation(new Location(dungeonRegion.Dungeon.Data.Exit));
+						pc.DisconnectFromNPC();
+					}
+					else
+					{
+						creature.Warp(dungeonRegion.Dungeon.Data.Exit);
+						creature.Revive(option);
+					}
 					return;
 
 				case ReviveOptions.StatueOfGoddess:
