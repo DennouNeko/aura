@@ -254,9 +254,8 @@ namespace Aura.Channel.World.Entities
 
 			this.Unlock(Locks.Default, true);
 
-			actor.Dispose();
+			actor.Disappear();
 			Send.PetUnregister(this, actor);
-			Send.Disappear(actor);
 			actor.Client = new DummyClient();
 			actor.Client.Kill();
 
