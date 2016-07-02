@@ -127,6 +127,7 @@ namespace Aura.Mabi.Const
 		ThrowingAttack = 21010,
 		HotAirBalloonCrossbowShot = 21011,
 		SpiderShot = 21012,
+		HotAirBalloonCrossbowShotMinigame = 21013,
 		UrgentShot = 21014,
 		Windmill = 22001,
 		Stomp = 22002,
