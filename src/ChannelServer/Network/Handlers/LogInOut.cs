@@ -93,6 +93,9 @@ namespace Aura.Channel.Network.Handlers
 				// skills and probably other initialization info for RP NPCs
 				// Long story short, a lot of StatUpdate, SkillRankUp, ItemNew, etc. packets
 				npcchar.OnNPCLoggedIn();
+
+				Send.UnknownRP(npcchar, false);
+				Send.UnknownRP(npcchar, true);
 			}
 
 			Send.ChannelLoginR(client, character.EntityId);
