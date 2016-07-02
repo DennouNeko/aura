@@ -71,7 +71,7 @@ namespace Aura.Channel.Network.Handlers
 			}
 
 			// Check character
-var character = secondaryLogin ? client.Creatures[characterId] : account.GetCharacterOrPetSafe(characterId);
+			var character = secondaryLogin ? client.Creatures[characterId] : account.GetCharacterOrPetSafe(characterId);
 			if (!secondaryLogin)
 			{
 				// Free premium
