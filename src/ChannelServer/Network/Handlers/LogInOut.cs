@@ -87,12 +87,15 @@ namespace Aura.Channel.Network.Handlers
 
 			// Per-character specific initialization
 			NPC npcchar = character as NPC;
-			if (npcchar != null && npcchar.OnNPCLoggedIn != null)
+			if (npcchar != null)
 			{
-				// Seems like officials send here packet-per-packet adding equipment,
-				// skills and probably other initialization info for RP NPCs
-				// Long story short, a lot of StatUpdate, SkillRankUp, ItemNew, etc. packets
-				npcchar.OnNPCLoggedIn();
+				if (npcchar.OnNPCLoggedIn != null)
+				{
+					// Seems like officials send here packet-per-packet adding equipment,
+					// skills and probably other initialization info for RP NPCs
+					// Long story short, a lot of StatUpdate, SkillRankUp, ItemNew, etc. packets
+					npcchar.OnNPCLoggedIn();
+				}
 
 				Send.UnknownRP(npcchar, false);
 				Send.UnknownRP(npcchar, true);
