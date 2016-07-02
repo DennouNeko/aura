@@ -54,11 +54,6 @@ namespace Aura.Channel.World.Entities
 		public Action OnNPCLoggedIn { get; protected set; }
 
 		/// <summary>
-		/// For initializing RP NPCs on login
-		/// </summary>
-		public Action OnNPCLoggedIn { get; protected set; }
-
-		/// <summary>
 		/// Location the NPC was spawned at.
 		/// </summary>
 		public Location SpawnLocation { get; set; }
