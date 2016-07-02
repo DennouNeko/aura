@@ -2731,12 +2731,19 @@ namespace Aura.Channel.World.Entities
 					radius += this.AttackRangeFor(target) / 2;
 				}
 
+				var self = this as NPC;
+				var selfRP = self != null && self.IsRolePlayingNPC;
+				var tgt = target as NPC;
+				var targetRP = tgt != null && tgt.IsRolePlayingNPC;
+
 				return target != this // Exclude creature
 					&& this.CanTarget(target) // Check targetability
-					&& ((!this.Has(CreatureStates.Npc) || !target.Has(CreatureStates.Npc)) || this.Target == target) // Allow NPC on NPC only if it's the creature's target
+					&& (!this.Has(CreatureStates.Npc) || !target.Has(CreatureStates.Npc) || this.Target == target) // Allow NPC on NPC only if it's the creature's target
+					&& ((selfRP || targetRP) && (selfRP != targetRP)) // Allow non-RP NPC to target/be targetted by RP NPC
 					&& targetPos.InRange(position, radius) // Check range
 					&& (((options & TargetableOptions.IgnoreWalls) != 0) || !this.Region.Collisions.Any(position, targetPos)) // Check collisions between positions
-					&& !target.Conditions.Has(ConditionsA.Invisible); // Check visiblility (GM)
+					&& !target.Conditions.Has(ConditionsA.Invisible) // Check visiblility (GM)
+					&& !target.Temp.IsRolePlayingInvisible; // Ignore invisible roleplaying players.
 			});
 
 			return targetable;

@@ -714,7 +714,7 @@ namespace Aura.Channel.World
 			_creaturesRWLS.EnterReadLock();
 			try
 			{
-				return _creatures.Values.Where(a => a.IsPlayer && a.GetPosition().InRange(pos, range)).ToList();
+				return _creatures.Values.Where(a => a.IsPlayer || (a is NPC && (a as NPC).IsRolePlayingNPC) && a.GetPosition().InRange(pos, range)).ToList();
 			}
 			finally
 			{

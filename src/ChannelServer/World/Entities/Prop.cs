@@ -427,7 +427,8 @@ namespace Aura.Channel.World.Entities
 					&& !target.Has(CreatureStates.NamedNpc) // Don't hit NamedNpcs (in case owner is null)
 					&& targetPos.InRange(pos, range) // Check range
 					&& !this.Region.Collisions.Any(pos, targetPos) // Check collisions between entities
-					&& !target.Conditions.Has(ConditionsA.Invisible); // Check visiblility (GM)
+					&& !target.Conditions.Has(ConditionsA.Invisible) // Check visiblility (GM)
+					&& !target.Temp.IsRolePlayingInvisible; // Ignore invisible roleplaying players
 			});
 
 			return targetable;
