@@ -179,7 +179,9 @@ namespace Aura.Channel.World.Entities
 			}
 
 			actor.SetLocation(regionId, x, y);
-			actor.Activate(CreatureStates.Initialized);
+			// actor.Activate(CreatureStates.Initialized);
+			actor.Activate(CreatureStates.InstantNpc);
+			actor.Activate(CreatureStates.EnableCommonPvp);
 			this.Client.Creatures.Add(actor.EntityId, actor);
 
 			actor.Temp.RolePlayingController = this;
@@ -236,14 +238,12 @@ namespace Aura.Channel.World.Entities
 
 			bool warpBack = this.Temp.IsRolePlayingInvisible;
 			var loc = this.GetLocation();
-			if(this.Region != Region.Limbo)
-				this.Region.RemoveCreature(this);
 
 			Send.StatUpdateDefault(this);
 
 			var apos = actor.GetPosition();
 
-			Send.RequestEndRP(this, this.EntityId, this.RegionId);
+			Send.RequestEndRP(this, this.EntityId, loc.RegionId);
 
 			// It seems that for any character, that player could control,
 			// the end byte of EntityDisappears is 1
@@ -266,6 +266,8 @@ namespace Aura.Channel.World.Entities
 
 			if(warpBack)
 			{
+				var r = ChannelServer.Instance.World.GetRegion(loc.RegionId);
+				r.AddCreature(this);
 				this.Warp(loc);
 			}
 		}
@@ -275,12 +277,12 @@ namespace Aura.Channel.World.Entities
 		/// </summary>
 		public void LookAround()
 		{
-			if (!this.Watching || Temp.IsRolePlayingInvisible)
+			if (!this.Watching)
 				return;
 
 			lock (_lookAroundLock)
 			{
-				var currentlyVisible = this.Region.GetVisibleEntities(this.Temp.RolePlayingActor != null ? this.Temp.RolePlayingActor : this);
+				var currentlyVisible = this.Region.GetVisibleEntities(this);
 
 				var appear = currentlyVisible.Except(_visibleEntities);
 				var disappear = _visibleEntities.Except(currentlyVisible);
