@@ -77,7 +77,10 @@ namespace Aura.Channel.Network.Sending
 				packet.PutUShort((ushort)skillId);
 			packet.PutShort(1); // Rank
 
-			creature.Region.Broadcast(packet, creature);
+			if (creature.Region != Region.Limbo)
+				creature.Region.Broadcast(packet, creature);
+			else
+				creature.Client.Send(packet);
 		}
 
 		/// <summary>
