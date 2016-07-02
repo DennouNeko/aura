@@ -483,7 +483,14 @@ namespace Aura.Channel.Network.Sending.Helpers
 			// --------------------------------------------------------------
 			if (type == CreaturePacketType.Private)
 			{
-				if (creature.Master != null)
+				var npc = creature as NPC;
+				if(npc != null && npc.IsRolePlayingNPC)
+				{
+					packet.PutLong(npc.Temp.RolePlayingController.EntityId);
+					packet.PutByte(1);
+					packet.PutByte(0);
+				}
+				else if (creature.Master != null)
 				{
 					packet.PutLong(creature.Master.EntityId);
 					packet.PutByte(2);               // Type (1:RPCharacter, 2:Pet, 3:Transport, 4:PartnerVehicle)
