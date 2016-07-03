@@ -280,6 +280,16 @@ namespace Aura.Channel.World.Entities
 			if (!this.Watching)
 				return;
 
+			if(this.Temp.IsRolePlayingInvisible)
+			{
+				if (_visibleEntities.Count > 0)
+				{
+					Send.EntitiesDisappear(this.Client, _visibleEntities);
+					_visibleEntities = new List<Entity>();
+				}
+				return;
+			}
+
 			lock (_lookAroundLock)
 			{
 				var currentlyVisible = this.Region.GetVisibleEntities(this);
