@@ -51,9 +51,9 @@ namespace Aura.Channel.Network.Sending
 		/// </summary>
 		/// <param name="creature"></param>
 		/// <param name="unk"></param>
-		public static void UnknownRP(Creature creature, bool unk)
+		public static void UnknownRP(Creature creature, byte unk)
 		{
-			Packet temp = new Packet(0x90A4, creature.EntityId);
+			Packet temp = new Packet(Op.UnknownRolePlaying, creature.EntityId);
 			temp.PutByte(unk);
 			temp.PutByte(1);
 			temp.PutInt(0);

@@ -97,8 +97,8 @@ namespace Aura.Channel.Network.Handlers
 					npcchar.OnNPCLoggedIn();
 				}
 
-				Send.UnknownRP(npcchar, false);
-				Send.UnknownRP(npcchar, true);
+				Send.UnknownRP(npcchar, 0);
+				Send.UnknownRP(npcchar, 1);
 			}
 
 			Send.ChannelLoginR(client, character.EntityId);
