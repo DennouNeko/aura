@@ -18,6 +18,7 @@ namespace Aura.Channel.Network.Sending.Helpers
 		{
 			var pos = creature.GetPosition();
 			var account = creature.Client.Account;
+			var npc = creature as NPC;
 
 			// Start
 			// --------------------------------------------------------------
@@ -483,7 +484,6 @@ namespace Aura.Channel.Network.Sending.Helpers
 			// --------------------------------------------------------------
 			if (type == CreaturePacketType.Private)
 			{
-				var npc = creature as NPC;
 				if(npc != null && npc.IsRolePlayingNPC)
 				{
 					packet.PutLong(npc.Temp.RolePlayingController.EntityId);
@@ -741,7 +741,7 @@ namespace Aura.Channel.Network.Sending.Helpers
 
 			// [150100] NPC options
 			// --------------------------------------------------------------
-			if (type == CreaturePacketType.Public && creature is NPC)
+			if (type == CreaturePacketType.Public && npc != null)
 			{
 				packet.PutShort(0);		         // OnlyShowFilter
 				packet.PutShort(0);		         // HideFilter
@@ -986,7 +986,7 @@ namespace Aura.Channel.Network.Sending.Helpers
 				packet.PutByte(false);                                           // ? (formerly IsUsingAdvancedPlay)
 				packet.PutByte(false);                                           // ?
 				packet.PutByte(account.PremiumServices.HasPremiumService);       // Bags, Account Bank, Premium Gestures
-				packet.PutByte(false);                                           // ? (formerly Premium Gestures?)
+				packet.PutByte(npc != null && npc.IsRolePlayingNPC);             // ? (formerly Premium Gestures?)
 				packet.PutByte(true);                                            // ? (Default 1 on NA?)
 				packet.PutByte(account.PremiumServices.HasInventoryPlusService); // Bags, Account Bank
 				// [170402, TW170300] New premium thing
@@ -1022,21 +1022,27 @@ namespace Aura.Channel.Network.Sending.Helpers
 				packet.PutLong(creature.LastRebirth);
 				packet.PutString("");
 				packet.PutByte(0); // "true" makes character lie on floor?
-				packet.PutByte(2);
+				packet.PutByte((byte)((npc != null && npc.IsRolePlayingNPC) ? 0 : 2)); // Inventory flags?
 
 				// [150100] Pocket ExpireTime List
 				// Apperantly a list of "pockets"?, incl expiration time.
 				// Ends with a long 0?
 				// --------------------------------------------------------------
+				if(npc == null || !npc.IsRolePlayingNPC)
 				{
 					// Style
 					packet.PutLong(DateTime.Now.AddMonths(1));
-					packet.PutShort(72);
+
+					// VIP??
+					// packet.PutShort(72);
+					// packet.PutLong(0);
 
 					// ?
-					//packet.PutLong(0);
-					//packet.PutShort(73);
-
+					// packet.PutShort(73);
+					// packet.PutLong(0);
+				}
+				else
+				{
 					packet.PutLong(0);
 				}
 			}
