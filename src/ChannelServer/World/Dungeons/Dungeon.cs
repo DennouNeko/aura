@@ -463,7 +463,14 @@ namespace Aura.Channel.World.Dungeons
 				exitStatue.Behavior = (cr, pr) =>
 				{
 					ChannelServer.Instance.Events.OnPlayerClearedDungeon(cr, this);
-					cr.Warp(this.Data.Exit);
+					if (cr is NPC && (cr as NPC).IsRolePlayingNPC)
+					{
+						var plr = cr.Temp.RolePlayingController as PlayerCreature;
+						plr.SetLocation(new Location(this.Data.Exit));
+						plr.DisconnectFromNPC();
+					}
+					else
+						cr.Warp(this.Data.Exit);
 				};
 				region.AddProp(exitStatue);
 			}
