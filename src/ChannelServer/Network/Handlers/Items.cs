@@ -42,10 +42,18 @@ namespace Aura.Channel.Network.Handlers
 
 			// Get creature
 			var creature = client.GetCreatureSafe(packet.Id);
+			var npc = creature as NPC;
 
 			// Get item
 			var item = creature.Inventory.GetItemSafe(entityId);
 			var source = item.Info.Pocket;
+
+			// Just silently fail if it's an RP NPC
+			// TODO: add filtering to allow refilling magazines?
+			if (npc != null && npc.IsRolePlayingNPC)
+			{
+				goto L_Fail;
+			}
 
 			// Check lock
 			if ((source.IsEquip() || target.IsEquip()) && !creature.Can(Locks.ChangeEquipment))
