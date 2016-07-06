@@ -478,8 +478,6 @@ namespace Aura.Mabi.Network
 		public const int NaoRevivalExit = 0x9099;
 		public const int NaoRevivalEntrance = 0x909D;
 
-		public const int UnknownRolePlaying = 0x90A4;
-
 		// [190100, NA198 (11.12.2014)] End of above's shift?
 
 		public const int DungeonInfo = 0x9470;

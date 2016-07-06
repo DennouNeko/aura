@@ -96,9 +96,6 @@ namespace Aura.Channel.Network.Handlers
 					// Long story short, a lot of StatUpdate, SkillRankUp, ItemNew, etc. packets
 					npcchar.OnNPCLoggedIn();
 				}
-
-				Send.UnknownRP(npcchar, 0);
-				Send.UnknownRP(npcchar, 1);
 			}
 
 			Send.ChannelLoginR(client, character.EntityId);

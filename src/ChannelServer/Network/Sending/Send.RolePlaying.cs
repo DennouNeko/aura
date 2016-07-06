@@ -43,22 +43,5 @@ namespace Aura.Channel.Network.Sending
             creature.Client.Send(packet);
             packet.Clear(packet.Op, packet.Id);
         }
-
-		/// <summary>
-		/// Some odd packet... Sending it with false and with true changes
-		/// the appearance of "Character info" window and seems to blocks some
-		/// of the menu buttons (they are still visible, though).
-		/// </summary>
-		/// <param name="creature"></param>
-		/// <param name="unk"></param>
-		public static void UnknownRP(Creature creature, byte unk)
-		{
-			Packet temp = new Packet(Op.UnknownRolePlaying, creature.EntityId);
-			temp.PutByte(unk);
-			temp.PutByte(1);
-			temp.PutInt(0);
-			temp.PutInt(0);
-			creature.Client.Send(temp);
-		}
 	}
 }
