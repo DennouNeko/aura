@@ -290,6 +290,7 @@ namespace Aura.Channel.World.Dungeons
 			if (baseRegionInfoData == null)
 				throw new Exception("DungeonLobbyRegion: No region info data found for '" + baseRegionId + "'.");
 
+			this.IsIndoor = true;
 			this.Data = baseRegionInfoData.Copy();
 			FixIds(this.Data, this.Id);
 

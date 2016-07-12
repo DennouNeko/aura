@@ -1306,7 +1306,10 @@ namespace Aura.Channel.Scripting.Scripts
 			if (questScriptsCount == 0)
 				throw new Exception("NpcScript.RandomPtj: Unable to find any of the given quests.");
 			if (questScriptsCount != questIds.Length)
-				Log.Warning("NpcScript.RandomPtj: Some of the given quest ids are unknown.");
+			{
+				var missing = questIds.Where(a => !questScripts.Any(b => b.Id == a));
+				Log.Warning("NpcScript.RandomPtj: Some of the given quest ids are unknown (" + string.Join(", ", missing) + ").");
+			}
 
 			// Check same level quests
 			var sameLevelQuests = questScripts.Where(a => a.Level == level);
@@ -1331,58 +1334,6 @@ namespace Aura.Channel.Scripting.Scripts
 			var randomQuest = sameLevelQuests.ElementAt(rnd.Next(sameLevelQuestsCount));
 
 			return randomQuest.Id;
-		}
-
-		/// <summary>
-		/// Returns PTJ XML code (<arbeit ... />) for the given quest id.
-		/// </summary>
-		/// <param name="questId"></param>
-		/// <param name="name"></param>
-		/// <param name="title"></param>
-		/// <returns></returns>
-		public string GetPtjXml(int questId, string name, string title, int maxAvailableJobs, int remainingJobs)
-		{
-			var quest = ChannelServer.Instance.ScriptManager.QuestScripts.Get(questId);
-			if (quest == null)
-				throw new ArgumentException("NpcScript.GetPtjXml: Unknown quest '" + questId + "'.");
-
-			var objective = quest.Objectives.First().Value;
-
-			var now = ErinnTime.Now;
-			var remainingHours = Math.Max(0, quest.DeadlineHour - now.Hour);
-			remainingJobs = Math2.Clamp(0, maxAvailableJobs, remainingJobs);
-			var history = this.Player.Quests.GetPtjTrackRecord(quest.PtjType).Done;
-
-			var sb = new StringBuilder();
-
-			sb.Append("<arbeit>");
-			sb.AppendFormat("<name>{0}</name>", name);
-			sb.AppendFormat("<id>{0}</id>", questId);
-			sb.AppendFormat("<title>{0}</title>", title);
-			foreach (var group in quest.RewardGroups.Values)
-			{
-				sb.AppendFormat("<rewards id=\"{0}\" type=\"{1}\">", group.Id, (int)group.Type);
-
-				foreach (var reward in group.Rewards.Where(a => a.Result == QuestResult.Perfect))
-					sb.AppendFormat("<reward>* {0}</reward>", reward.ToString());
-
-				sb.AppendFormat("</rewards>");
-			}
-			sb.AppendFormat("<desc>{0}</desc>", objective.Description);
-			sb.AppendFormat("<values maxcount=\"{0}\" remaincount=\"{1}\" remaintime=\"{2}\" history=\"{3}\"/>", maxAvailableJobs, remainingJobs, remainingHours, history);
-			sb.Append("</arbeit>");
-
-			return sb.ToString();
-		}
-
-		/// <summary>
-		/// Returns XML code to display the rewards for the given result.
-		/// </summary>
-		/// <param name="result"></param>
-		/// <returns></returns>
-		public string GetPtjReportXml(QuestResult result)
-		{
-			return string.Format("<arbeit_report result=\"{0}\"/>", (byte)result);
 		}
 
 		/// <summary>
@@ -1552,6 +1503,13 @@ namespace Aura.Channel.Scripting.Scripts
 			}
 
 			var bankTitle = BankInventory.GetName(bankId);
+
+			// Override bank if global bank is activated
+			if (ChannelServer.Instance.Conf.World.GlobalBank)
+			{
+				bankId = "Global";
+				bankTitle = L("Global Bank");
+			}
 
 			this.Player.Temp.CurrentBankId = bankId;
 			this.Player.Temp.CurrentBankTitle = bankTitle;
@@ -2222,6 +2180,9 @@ namespace Aura.Channel.Scripting.Scripts
 		public DialogSetDefaultName SetDefaultName(string name) { return new DialogSetDefaultName(name); }
 
 		public DialogSelectItem SelectItem(string title, string caption, string tags) { return new DialogSelectItem(title, caption, tags); }
+
+		public DialogPtjDesc PtjDesc(int questId, string name, string title, int maxAvailableJobs, int remainingJobs, int history) { return new DialogPtjDesc(questId, name, title, maxAvailableJobs, remainingJobs, history); }
+		public DialogPtjReport PtjReport(QuestResult result) { return new DialogPtjReport(result); }
 
 		// ------------------------------------------------------------------
 
