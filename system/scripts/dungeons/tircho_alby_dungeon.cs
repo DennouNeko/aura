@@ -89,6 +89,21 @@ public class AlbyDungeonScript : DungeonScript
 			}
 		}
 
+		// G1 RP Dungeon 3 Warriors
+		if (item.Info.Id == 73002) // Tarlach's Locket
+		{
+			if (creature.Party.MemberCount <= 3)
+			{
+				dungeonName = "g1rp_05_tircho_alby_dungeon_gfmainstream2012part1";
+				return true;
+			}
+			else
+			{
+				Send.Notice(creature, L("Up to 3 players may enter this dungeon."));
+				return false;
+			}
+		}
+		
 		// Fall back for unknown passes
 		if (item.IsDungeonPass)
 		{
