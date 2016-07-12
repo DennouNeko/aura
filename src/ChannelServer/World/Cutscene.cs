@@ -153,13 +153,15 @@ namespace Aura.Channel.World
 		/// </summary>
 		public void Play()
 		{
-			_viewers = this.Leader.Party.GetMembers();
+			var npcLead = this.Leader as NPC;
+			var trueLeader = (npcLead != null && npcLead.IsRolePlayingNPC) ? npcLead.Temp.RolePlayingController : this.Leader;
+			_viewers = trueLeader.Party.GetMembers();
 
 			foreach (var member in _viewers)
 			{
-				member.Temp.CurrentCutscene = this;
-				member.Lock(Locks.Default, true);
 				var viewer = member.Temp.IsRolePlayingInvisible ? member.Temp.RolePlayingActor : member;
+				viewer.Temp.CurrentCutscene = this;
+				viewer.Lock(Locks.Default, true);
 				Send.PlayCutscene(viewer, this);
 			}
 		}
@@ -198,9 +200,10 @@ namespace Aura.Channel.World
 		{
 			foreach (var member in _viewers)
 			{
-				Send.CutsceneEnd(member);
-				member.Unlock(Locks.Default, true);
-				Send.CutsceneUnk(member);
+				var viewer = member.Temp.IsRolePlayingInvisible ? member.Temp.RolePlayingActor : member;
+				Send.CutsceneEnd(viewer);
+				viewer.Unlock(Locks.Default, true);
+				Send.CutsceneUnk(viewer);
 			}
 
 			// Call callback before setting cutscene to null so it can
@@ -210,11 +213,12 @@ namespace Aura.Channel.World
 
 			foreach (var member in _viewers)
 			{
+				var viewer = member.Temp.IsRolePlayingInvisible ? member.Temp.RolePlayingActor : member;
 				// Only set cutscene to null if callback didn't start
 				// another one, otherwise players wouldn't be able to
 				// finish the new one, getting stuck.
-				if (member.Temp.CurrentCutscene == this)
-					member.Temp.CurrentCutscene = null;
+				if (viewer.Temp.CurrentCutscene == this)
+					viewer.Temp.CurrentCutscene = null;
 			}
 		}
 	}
