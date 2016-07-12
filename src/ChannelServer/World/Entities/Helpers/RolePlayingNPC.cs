@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Aura.Channel.World.Entities.Helpers
 {
-	public abstract class NPCBuilder : NPC
+	public abstract class RolePlayingNPC : NPC
 	{
 		string _baseName = "";
 		string _npcName = "";
@@ -40,7 +40,7 @@ namespace Aura.Channel.World.Entities.Helpers
 			}
 		}
 
-		protected NPCBuilder()
+		protected RolePlayingNPC()
 		{
 			//Some defaults, so we won't end up with undefined values
 			this.RaceId = 0;
