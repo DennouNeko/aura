@@ -2814,6 +2814,11 @@ namespace Aura.Channel.World.Entities
 					radius += this.AttackRangeFor(target) / 2;
 				}
 
+				var self = this as NPC;
+				var selfRP = self != null && self.IsRolePlayingNPC;
+				var tgt = target as NPC;
+				var targetRP = tgt != null && tgt.IsRolePlayingNPC;
+
 				return target != this // Exclude creature
 					&& this.CanTarget(target) // Check targetability
 					&& ((!this.Has(CreatureStates.Npc) || !target.Has(CreatureStates.Npc)) || this.Target == target) // Allow NPC on NPC only if it's the creature's target
