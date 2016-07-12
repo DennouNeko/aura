@@ -282,7 +282,13 @@ namespace Aura.Channel.World.Dungeons
 				return false;
 			}
 
-			return this.CreateDungeonAndWarp(dungeonName, item.Info.Id, creature);
+			// Re-fetch actual dungeon script
+			dungeonScript = ChannelServer.Instance.ScriptManager.DungeonScripts.Get(dungeonName);
+			// Log.Debug("RolePlaying flag = {0}", dungeonScript.IsRolePlaying);
+			if (dungeonScript != null && dungeonScript.IsRolePlaying)
+				return this.CreateDungeonAndWarp(dungeonName, item.Info.Id, creature, dungeonScript.OnSubstitutePlayer);
+			else
+				return this.CreateDungeonAndWarp(dungeonName, item.Info.Id, creature, null);
 		}
 
 		/// <summary>
@@ -292,46 +298,9 @@ namespace Aura.Channel.World.Dungeons
 		/// <param name="dungeonName"></param>
 		/// <param name="itemId"></param>
 		/// <param name="creature"></param>
+		/// <param name="npcSubstitute"></param>
 		/// <returns></returns>
-		public bool CreateDungeonAndWarp(string dungeonName, int itemId, Creature creature)
-		{
-			lock (_createAndCleanUpLock)
-			{
-				try
-				{
-					var dungeon = this.CreateDungeon(dungeonName, itemId, creature);
-					var regionId = dungeon.Regions.First().Id;
-
-					// Warp the party currently standing on the altar into the dungeon.
-					var party = creature.Party.GetCreaturesOnAltar(creature.RegionId);
-					foreach (var member in party)
-					{
-						var pos = member.GetPosition();
-						member.Warp(regionId, pos);
-
-						// TODO: This is a bit hacky, needs to be moved to Creature.Warp, with an appropriate check.
-						Send.EntitiesDisappear(member.Client, party);
-					}
-
-					return true;
-				}
-				catch (Exception ex)
-				{
-					Log.Exception(ex, "Failed to create and warp to dungeon.");
-					return false;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Creates a dungeon with the given parameters and warps the creature's
-		/// party inside.
-		/// </summary>
-		/// <param name="dungeonName"></param>
-		/// <param name="itemId"></param>
-		/// <param name="creature"></param>
-		/// <returns></returns>
-		public bool CreateRPDungeonAndWarp(string dungeonName, int itemId, Creature creature, Func<Creature, Creature> npcSubstitute)
+		public bool CreateDungeonAndWarp(string dungeonName, int itemId, Creature creature, Func<Creature, Creature> npcSubstitute)
 		{
 			lock (_createAndCleanUpLock)
 			{
@@ -344,26 +313,31 @@ namespace Aura.Channel.World.Dungeons
 
 					// Warp the party currently standing on the altar into the dungeon.
 					var party = creature.Party.GetCreaturesOnAltar(creature.RegionId);
-					foreach (var member in party)
+					if (npcSubstitute != null)
 					{
-						if (member as PlayerCreature == null)
+						foreach (var member in party)
 						{
-							Send.SystemMessage(creature, "{0} can't enter the dungeon!", member.Name);
-							if (member != creature)
-								Send.SystemMessage(member, "You can't enter a RP dungeon");
-							failed = true;
+							if (member as PlayerCreature == null)
+							{
+								Send.SystemMessage(creature, "{0} can't enter the dungeon!", member.Name);
+								if (member != creature)
+									Send.SystemMessage(member, "You can't enter a RP dungeon");
+								failed = true;
+							}
 						}
+						if (failed) return false;
 					}
-					if (failed) return false;
 
 					foreach (var member in party)
 					{
 						var pos = member.GetPosition();
-						var actor = npcSubstitute == null ? member : npcSubstitute(member);
-						if(actor is NPC && member is PlayerCreature)
+						var actor = (npcSubstitute == null) ? member : npcSubstitute(member);
+						var act = actor as NPC;
+						var pc = member as PlayerCreature;
+						// Log.Debug("member {0}, actor {1}, substitute {2}, equal {3}", pc != null, act != null, npcSubstitute != null, actor == member);
+						if (act != null && pc != null)
 						{
-							var act = actor as NPC;
-							var pc = member as PlayerCreature;
+							// TODO: unsummon all summonable creatures controlled by Role Playing player
 							if (!pc.LoginAsNPC(act, regionId, pos.X, pos.Y, true))
 							{
 								failed = true;
@@ -372,13 +346,14 @@ namespace Aura.Channel.World.Dungeons
 						}
 						else
 						{
-							actor.Warp(regionId, pos);
+							member.Warp(regionId, pos);
 						}
 
 						// TODO: This is a bit hacky, needs to be moved to Creature.Warp, with an appropriate check.
 						Send.EntitiesDisappear(member.Client, party);
 					}
 
+					// A failsafe in case that any party member failed to enter the RP dungeon.
 					if (failed)
 					{
 						foreach (var member in party)
@@ -389,6 +364,7 @@ namespace Aura.Channel.World.Dungeons
 								pc.DisconnectFromNPC();
 							}
 						}
+						Send.SystemMessage(creature, "At least one of party members failed to start RP session.");
 						return false;
 					}
 

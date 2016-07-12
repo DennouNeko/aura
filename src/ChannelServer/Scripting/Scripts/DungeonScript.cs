@@ -24,6 +24,12 @@ namespace Aura.Channel.Scripting.Scripts
 		public string Name { get; private set; }
 
 		/// <summary>
+		/// True for RP Dungeons.
+		/// Enables player substitution on entering dungeon.
+		/// </summary>
+		public bool IsRolePlaying { get; protected set; }
+
+		/// <summary>
 		/// Called when the script is initially created.
 		/// </summary>
 		/// <returns></returns>
@@ -63,6 +69,17 @@ namespace Aura.Channel.Scripting.Scripts
 		/// </summary>
 		public virtual void OnCreation(Dungeon dungeon)
 		{
+		}
+
+		/// <summary>
+		/// Called for each player entering the dungeon.
+		/// Allows substitution with RP character.
+		/// </summary>
+		/// <param name="player"></param>
+		/// <returns></returns>
+		public virtual Creature OnSubstitutePlayer(Creature player)
+		{
+			return player;
 		}
 
 		/// <summary>
