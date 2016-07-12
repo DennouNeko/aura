@@ -56,7 +56,7 @@ namespace Aura.Channel.World
 				throw new ArgumentException("Unknown cutscene '" + name + "'.");
 
 			this.Name = name;
-			this.Leader = leader;
+			this.Leader = leader.Temp.IsRolePlayingInvisible ? leader.Temp.RolePlayingActor : leader;
 
 			this.Actors = new Dictionary<string, Creature>();
 		}
@@ -159,7 +159,8 @@ namespace Aura.Channel.World
 			{
 				member.Temp.CurrentCutscene = this;
 				member.Lock(Locks.Default, true);
-				Send.PlayCutscene(member, this);
+				var viewer = member.Temp.IsRolePlayingInvisible ? member.Temp.RolePlayingActor : member;
+				Send.PlayCutscene(viewer, this);
 			}
 		}
 
