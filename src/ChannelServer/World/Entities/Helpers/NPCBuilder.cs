@@ -249,6 +249,39 @@ namespace Aura.Channel.World.Entities.Helpers
 			}
 		}
 
+		/// <summary>
+		/// Adds item to NPC's inventory.
+		/// </summary>
+		/// <param name="pocket"></param>
+		/// <param name="itemId"></param>
+		/// <param name="color1"></param>
+		/// <param name="color2"></param>
+		/// <param name="color3"></param>
+		/// <param name="state">For robes and helmets</param>
+		protected void EquipItem(Pocket pocket, int itemId, uint color1 = 0, uint color2 = 0, uint color3 = 0, ItemState state = ItemState.Up)
+		{
+			if (!pocket.IsEquip())
+			{
+				Log.Error("Pocket '{0}' is not for equipment ({1})", pocket, this.GetType().Name);
+				return;
+			}
+
+			if (!AuraData.ItemDb.Exists(itemId))
+			{
+				Log.Error("Unknown item '{0}' ({1})", itemId, this.GetType().Name);
+				return;
+			}
+
+			var item = new Item(itemId);
+			item.Info.Pocket = pocket;
+			item.Info.Color1 = color1;
+			item.Info.Color2 = color2;
+			item.Info.Color3 = color3;
+			item.Info.State = (byte)state;
+
+			this.Inventory.InitAdd(item);
+		}
+
 		public void GiveSkill(SkillId id, SkillRank rank = SkillRank.Novice)
 		{
 			for (byte b = (byte)SkillRank.Novice; b <= (byte)rank; b++)
@@ -341,5 +374,7 @@ namespace Aura.Channel.World.Entities.Helpers
 		/// SetVitals, SetBaseStats
 		/// </remarks>
 		protected virtual void OnPostUpdate() { }
+
+		protected enum ItemState : byte { Up = 0, Down = 1 }
 	}
 }
