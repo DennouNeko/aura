@@ -280,6 +280,7 @@
     <Compile Include="World\Entities\Creatures\CreatureKeywords.cs" />
     <Compile Include="World\Entities\Creatures\CreatureDeadMenu.cs" />
     <Compile Include="World\Entities\Entity.cs" />
+    <Compile Include="World\Entities\Helpers\NPCBuilder.cs" />
     <Compile Include="World\Entities\Item.cs" />
     <Compile Include="World\Entities\NPC.cs" />
     <Compile Include="World\Entities\Pet.cs" />
