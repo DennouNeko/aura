@@ -901,10 +901,24 @@ namespace Aura.Channel.World.Dungeons
 		public List<Creature> GetCreators()
 		{
 			var result = new List<Creature>();
+			var npcLead = this.PartyLeader as NPC;
+			var trueLeader = (npcLead != null && npcLead.IsRolePlayingNPC) ? npcLead.Temp.RolePlayingController : this.PartyLeader;
+			var party = trueLeader.Party.GetMembers();
 
 			foreach (var entityId in this.Creators)
 			{
 				var creature = this.GetCreature(entityId);
+				// if player is not in dungeon, check if it's still in party
+				// and is still controlling an NPC
+				if (creature == null)
+				{
+					var member = party.FirstOrDefault(a => a.EntityId == entityId);
+					if (member != null && member.Temp.IsRolePlayingInvisible)
+					{
+						// making sure that controlled NPC is still in dungeon
+						creature = this.GetCreature(member.Temp.RolePlayingActor.EntityId);
+					}
+				}
 				if (creature != null)
 					result.Add(creature);
 			}

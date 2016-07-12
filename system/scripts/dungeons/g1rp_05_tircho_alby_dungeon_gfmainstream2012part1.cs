@@ -116,12 +116,13 @@ public class AlbyRPDungeonScript : DungeonScript
 
 			member.GiveItemWithEffect(Item.CreateKey(70028, "chest"));
 			
-			if (member.Quests.IsActive(213004, "clear_rp_alby"))
+			var controller = (member is NPC && (member as NPC).IsRolePlayingNPC) ? member.Temp.RolePlayingController : member;
+			if (controller.Quests.IsActive(213004, "clear_rp_alby"))
 			{
-			member.Keywords.Give("g1_goddess");
-			member.Keywords.Remove("g1_tarlach2");
-			member.Keywords.Give("g1_04");
-			member.Keywords.Remove("g1_03");
+				controller.Keywords.Give("g1_goddess");
+				controller.Keywords.Remove("g1_tarlach2");
+				controller.Keywords.Give("g1_04");
+				controller.Keywords.Remove("g1_03");
 			}
 		}
 	}
