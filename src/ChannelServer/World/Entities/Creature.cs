@@ -2817,9 +2817,11 @@ namespace Aura.Channel.World.Entities
 				return target != this // Exclude creature
 					&& this.CanTarget(target) // Check targetability
 					&& ((!this.Has(CreatureStates.Npc) || !target.Has(CreatureStates.Npc)) || this.Target == target) // Allow NPC on NPC only if it's the creature's target
+					&& ((selfRP || targetRP) && (selfRP != targetRP)) // Allow non-RP NPC to target/be targetted by RP NPC
 					&& targetPos.InCone(position, direction, (int)radius, angle) // Check position
 					&& (((options & TargetableOptions.IgnoreWalls) != 0) || !this.Region.Collisions.Any(position, targetPos)) // Check collisions between positions
-					&& !target.Conditions.Has(ConditionsA.Invisible); // Check visiblility (GM)
+					&& !target.Conditions.Has(ConditionsA.Invisible) // Check visiblility (GM)
+					&& !target.Temp.IsRolePlayingInvisible; // Ignore invisible roleplaying players.
 			});
 
 			return targetable;
