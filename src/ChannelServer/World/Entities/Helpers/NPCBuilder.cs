@@ -23,6 +23,12 @@ namespace Aura.Channel.World.Entities.Helpers
 
 		private void UpdateName()
 		{
+			if (BaseName == "" && NpcName == "")
+			{
+				this.Name = "_unknown";
+				return;
+			}
+
 			if (BaseName == "")
 				this.Name = NpcName;
 			else if (NpcName == "")
@@ -48,7 +54,6 @@ namespace Aura.Channel.World.Entities.Helpers
 
 		public void SetRace(int raceId)
 		{
-			Log.Debug("RaceId = {0}, raceId = {1}", this.RaceId, raceId);
 			if (raceId == 0)
 				throw new Exception("NPCBuilder: raceId for SetRace cannot be 0!");
 
