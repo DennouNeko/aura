@@ -149,7 +149,7 @@ namespace Aura.Channel.World.Entities.Helpers
 			}
 		}
 
-		public void SetAppearance(int faceId, int hairId, int eyeColor, int eyeType, int mouthType, int skinColor, uint hairColor, float weight = 1.0f, float height = 1.0f, float upper = 1.0f, float lower = 1.0f, uint color1 = 0x808080, uint color2 = 0x808080, uint color3 = 0x808080)
+		public void SetAppearance(int faceId, int hairId, uint hairColor, int eyeColor, int eyeType, int mouthType, int skinColor, float weight = 1.0f, float height = 1.0f, float upper = 1.0f, float lower = 1.0f, uint color1 = 0x808080, uint color2 = 0x808080, uint color3 = 0x808080)
 		{
 			this.Weight = weight;
 			this.Height = height;
