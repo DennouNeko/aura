@@ -34,6 +34,8 @@ public class AlbyRPDungeonScript : DungeonScript
 			
 			idx++;
 		}
+		
+		return idx;
 	}
 	
 	public override Creature OnSubstitutePlayer(Creature player)
@@ -87,10 +89,11 @@ public class AlbyRPDungeonScript : DungeonScript
 		dungeon.PlayCutscene("G1_5_c_3WarriorsRP");
 		
 		var rnd = RandomProvider.Get();
+		var creators = dungeon.GetCreators();
 
-		for (int i = 0; i < dungeon.Party.Count; ++i)
+		for (int i = 0; i < creators.Count; ++i)
 		{
-			var member = dungeon.Party[i];
+			var member = creators[i];
 			var treasureChest = new TreasureChest();
 
 			if (i == 0)
@@ -150,7 +153,7 @@ public class AlbyRPDungeonScript : DungeonScript
 	}
 }
 
-public class RPTarlach : NPCBuilder
+public class RPTarlach : RolePlayingNPC
 {
 	public RPTarlach(string playerName)
 	{
@@ -182,24 +185,58 @@ public class RPTarlach : NPCBuilder
 
 	override protected void OnInventoryUpdate()
 	{
-		// TODO
+		GiveItem(51002, 10);
+		GiveItem(51002, 10);
+		GiveItem(51002, 10);
+		GiveItem(51012, 10);
+		GiveItem(63000, 10);
+		GiveItem(51007, 10);
+		GiveItem(51007, 10);
+		GiveItem(51007, 10);
+		GiveItem(51007, 10);
+		GiveItem(51007, 10);
+		GiveItem(60005, 10);
+		GiveItem(60005, 10);
+		GiveItem(60005, 10);
+		GiveItem(60005, 10);
+		GiveItem(91399);
+		GiveItem(91399);
 	}
 
 	override protected void OnSkillsUpdate()
 	{
-		// TODO
+		GiveSkill(SkillId.PlayingInstrument, SkillRank.RD);
+		GiveSkill(SkillId.Rest, SkillRank.RD);
+		GiveSkill(SkillId.Composing, SkillRank.RD);
+		GiveSkill(SkillId.MusicalKnowledge, SkillRank.RE);
+		GiveSkill(SkillId.FirstAid, SkillRank.RE);
+		GiveSkill(SkillId.Defense, SkillRank.RD);
+		
+		// ?
+		// This is how the officials handle this
+		GiveSkill(SkillId.CriticalHit, SkillRank.Novice);
+		GiveSkill(SkillId.CombatMastery, SkillRank.RB);
+		GiveSkill(SkillId.CriticalHit, SkillRank.RA);
+		
+		GiveSkill(SkillId.Meditation, SkillRank.RD);
+		GiveSkill(SkillId.Enchant, SkillRank.RD);
+		GiveSkill(SkillId.Healing, SkillRank.RA);
+
+		GiveSkill(SkillId.Lightningbolt, SkillRank.R8);
+		GiveSkill(SkillId.Firebolt, SkillRank.R7);
+		GiveSkill(SkillId.Icebolt, SkillRank.R9);
 	}
 
 	override protected void OnPostUpdate()
 	{
-		this.LifeMaxMod = 50.0f;
+		// this.LifeMaxMod = 50.0f;
 		this.AbilityPoints = 7;
 		SetBaseStats(83, 301, 88, 128, 70);
 		SetVitals(302.0f, 325.0f, 120.0f);
 	}
 }
 
-public class RPRuairi : NPCBuilder
+public class RPRuairi : RolePlayingNPC
 {
 	public RPRuairi(string playerName)
 	{
@@ -230,24 +267,53 @@ public class RPRuairi : NPCBuilder
 
 	override protected void OnInventoryUpdate()
 	{
-		// TODO
+		GiveItem(63002, 5);
+		GiveItem(63002, 5);
+		GiveItem(63002, 5);
+		GiveItem(63002, 5);
+		GiveItem(51002, 10);
+		GiveItem(51002, 10);
+		GiveItem(51002, 10);
+		GiveItem(51002, 10);
+		GiveItem(51002, 10);
+		GiveItem(51012, 10);
+		GiveItem(51012, 10);
+		GiveItem(51012, 10);
+		GiveItem(51012, 10);
+		GiveItem(60005, 10);
+		GiveItem(60005, 10);
+		GiveItem(60005, 10);
+		GiveItem(63000, 10);
+		GiveItem(91399);
+		GiveItem(91399);
 	}
 
 	override protected void OnSkillsUpdate()
 	{
-		// TODO
+		GiveSkill(SkillId.Rest, SkillRank.RD);
+		GiveSkill(SkillId.Campfire, SkillRank.RE);
+		GiveSkill(SkillId.Defense, SkillRank.R9);
+		GiveSkill(SkillId.Smash, SkillRank.R9);
+		GiveSkill(SkillId.Counterattack, SkillRank.RC);
+		GiveSkill(SkillId.Windmill, SkillRank.RF);
+
+		// ?
+		// This is how the officials handle this
+		GiveSkill(SkillId.CriticalHit, SkillRank.Novice);
+		GiveSkill(SkillId.CombatMastery, SkillRank.R6);
+		GiveSkill(SkillId.CriticalHit, SkillRank.R9);
 	}
 
 	override protected void OnPostUpdate()
 	{
-		this.LifeMaxMod = 100.0f;
+		// this.LifeMaxMod = 100.0f;
 		this.AbilityPoints = 7;
 		SetBaseStats(234, 50, 64, 224, 50);
 		SetVitals(302.0f, 325.0f, 120.0f);
 	}
 }
 
-public class RPMari : NPCBuilder
+public class RPMari : RolePlayingNPC
 {
 	public RPMari(string playerName)
 	{
