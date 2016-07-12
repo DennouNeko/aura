@@ -205,8 +205,9 @@ namespace Aura.Channel.Network.Handlers
 			// afterwards, so the client is done with the warping process,
 			// when things like cutscenes are started from the OnEnter
 			// events in  the dungeon script.
+			var npc = creature as NPC;
 			var dungeonLobbyRegion = creature.Region as DungeonLobbyRegion;
-			if (dungeonLobbyRegion != null)
+			if (dungeonLobbyRegion != null && (npc == null || !npc.IsRolePlayingNPC))
 				dungeonLobbyRegion.Dungeon.OnPlayerEntersLobby(creature);
 		}
 
@@ -335,6 +336,12 @@ namespace Aura.Channel.Network.Handlers
 			// Any extra ChannelInfo initialization from scripts
 			// Actual first update of features
 			ChannelServer.Instance.Events.OnCreatureConnected(creature);
+
+			// Delayed OnPlayerEntersLobby for RolePlaying NPCs
+			var npc = creature as NPC;
+			var dungeonLobbyRegion = creature.Region as DungeonLobbyRegion;
+			if (dungeonLobbyRegion != null && (npc != null && npc.IsRolePlayingNPC))
+				dungeonLobbyRegion.Dungeon.OnPlayerEntersLobby(creature);
 		}
 
 		/// <summary>
