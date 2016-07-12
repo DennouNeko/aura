@@ -55,7 +55,7 @@ namespace Aura.Channel.World.Entities.Helpers
 		public void SetRace(int raceId)
 		{
 			if (raceId == 0)
-				throw new Exception("NPCBuilder: raceId for SetRace cannot be 0!");
+				throw new Exception("RolePlayingNPC: raceId for SetRace cannot be 0!");
 
 			// if race was already set
 			if (this.RaceId != 0)
@@ -321,7 +321,7 @@ namespace Aura.Channel.World.Entities.Helpers
 			}
 			catch (Exception e)
 			{
-				Log.Error("NPCBuilder: Exception during NPC OnLoggedIn update.");
+				Log.Error("RolePlayingNPC: Exception during NPC OnLoggedIn update.");
 				Log.Exception(e);
 				return;
 			}
