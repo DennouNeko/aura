@@ -225,6 +225,7 @@ namespace Aura.Channel.Network.Sending
 						case Stat.ManaMaxFoodMod: packet.PutFloat(creature.ManaFoodMod); break;
 						case Stat.Stamina: packet.PutFloat(creature.Stamina); break;
 						case Stat.Hunger: packet.PutFloat(creature.StaminaHunger); break;
+						case Stat.FoodMinRatio: packet.PutFloat(0.5f); break;
 						case Stat.StaminaMax: packet.PutFloat(creature.StaminaMaxBaseTotal); break;
 						case Stat.StaminaMaxMod: packet.PutFloat(creature.StatMods.Get(Stat.StaminaMaxMod)); break;
 						case Stat.StaminaMaxFoodMod: packet.PutFloat(creature.StaminaFoodMod); break;
