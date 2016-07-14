@@ -5,6 +5,7 @@ using Aura.Channel.Network.Sending;
 using Aura.Channel.World.Entities;
 using Aura.Data;
 using Aura.Data.Database;
+using Aura.Shared.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -146,8 +147,10 @@ namespace Aura.Channel.World
 			Send.RemoveDynamicRegion(creature, this.Id);
 
 			// Remove empty region from world when last *player* was removed
-			if (creature.IsPlayer && this.CountPlayers() == 0 && this.Mode == RegionMode.RemoveWhenEmpty)
+			if ((creature.IsPlayer || (creature is NPC && (creature as NPC).IsRolePlayingNPC))
+				&& this.CountPlayers() == 0 && this.Mode == RegionMode.RemoveWhenEmpty)
 			{
+				Log.Debug("Removing dynamic region {0}, because it became empty.", this.Id);
 				ChannelServer.Instance.World.RemoveRegion(this.Id);
 				ChannelServer.Instance.World.DynamicRegions.Remove(this.Id);
 			}
