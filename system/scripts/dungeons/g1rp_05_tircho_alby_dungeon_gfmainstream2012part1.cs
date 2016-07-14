@@ -92,6 +92,7 @@ public class AlbyRPDungeonScript : DungeonScript
 
 		for (int i = 0; i < creators.Count; ++i)
 		{
+			var member = creators[i];
 			var npcMember = member as NPC;
 			var controller = (npcMember != null && npcMember.IsRolePlayingNPC) ? npcMember.Temp.RolePlayingController : member;
 			if (controller.Quests.IsActive(213004, "clear_rp_alby"))
