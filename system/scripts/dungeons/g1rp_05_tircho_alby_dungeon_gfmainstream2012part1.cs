@@ -88,35 +88,12 @@ public class AlbyRPDungeonScript : DungeonScript
 	{
 		dungeon.PlayCutscene("G1_5_c_3WarriorsRP");
 		
-		var rnd = RandomProvider.Get();
 		var creators = dungeon.GetCreators();
 
 		for (int i = 0; i < creators.Count; ++i)
 		{
-			var member = creators[i];
-			var treasureChest = new TreasureChest();
-
-			if (i == 0)
-			{
-				// Enchant
-				var enchant = 0;
-				switch (rnd.Next(3))
-				{
-					case 0: enchant = 1506; break; // Swan Summoner's (Prefix)
-					case 1: enchant = 1706; break; // Good (Prefix)
-					case 2: enchant = 305; break;  // Fine (Prefix)
-				}
-				treasureChest.Add(Item.CreateEnchant(enchant));
-			}
-
-			treasureChest.AddGold(rnd.Next(153, 768)); // Gold
-			treasureChest.Add(GetRandomTreasureItem(rnd)); // Random item
-
-			dungeon.AddChest(treasureChest);
-
-			member.GiveItemWithEffect(Item.CreateKey(70028, "chest"));
-			
-			var controller = (member is NPC && (member as NPC).IsRolePlayingNPC) ? member.Temp.RolePlayingController : member;
+			var npcMember = member as NPC;
+			var controller = (npcMember != null && npcMember.IsRolePlayingNPC) ? npcMember.Temp.RolePlayingController : member;
 			if (controller.Quests.IsActive(213004, "clear_rp_alby"))
 			{
 				controller.Keywords.Give("g1_goddess");
@@ -124,6 +101,11 @@ public class AlbyRPDungeonScript : DungeonScript
 				controller.Keywords.Give("g1_04");
 				controller.Keywords.Remove("g1_03");
 			}
+			
+			if (npcMember != null && controller is PlayerCreature)
+				(controller as PlayerCreature).DisconnectFromNPC();
+			else // as a failsafe
+				member.Warp(dungeon.Data.Exit);
 		}
 	}
 
