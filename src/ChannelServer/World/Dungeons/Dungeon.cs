@@ -322,7 +322,7 @@ namespace Aura.Channel.World.Dungeons
 				{
 					var plr = cr.Temp.RolePlayingController as PlayerCreature;
 					plr.SetLocation(new Location(this.Data.Exit));
-					plr.DisconnectFromNPC();
+					plr.EndRolePlaying();
 				}
 				else
 					cr.Warp(this.Data.Exit);
@@ -467,7 +467,7 @@ namespace Aura.Channel.World.Dungeons
 					{
 						var plr = cr.Temp.RolePlayingController as PlayerCreature;
 						plr.SetLocation(new Location(this.Data.Exit));
-						plr.DisconnectFromNPC();
+						plr.EndRolePlaying();
 					}
 					else
 						cr.Warp(this.Data.Exit);

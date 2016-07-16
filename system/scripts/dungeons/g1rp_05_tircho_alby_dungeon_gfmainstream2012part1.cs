@@ -103,10 +103,10 @@ public class AlbyRPDungeonScript : DungeonScript
 				controller.Keywords.Remove("g1_03");
 			}
 			
-			if (npcMember != null && controller is PlayerCreature)
-				(controller as PlayerCreature).DisconnectFromNPC();
+			/*if (npcMember != null && controller is PlayerCreature)
+				(controller as PlayerCreature).EndRolePlaying();
 			else // as a failsafe
-				member.Warp(dungeon.Data.Exit);
+				member.Warp(dungeon.Data.Exit);//*/
 		}
 	}
 

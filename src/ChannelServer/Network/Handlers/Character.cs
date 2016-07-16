@@ -116,7 +116,7 @@ namespace Aura.Channel.Network.Handlers
 					{
 						var pc = npc.Temp.RolePlayingController as PlayerCreature;
 						pc.SetLocation(new Location(dungeonRegion.Dungeon.Data.Exit));
-						pc.DisconnectFromNPC();
+						pc.EndRolePlaying();
 					}
 					else
 					{

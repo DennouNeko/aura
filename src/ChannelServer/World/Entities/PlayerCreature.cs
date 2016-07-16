@@ -157,24 +157,25 @@ namespace Aura.Channel.World.Entities
 		}
 
 		/// <summary>
-		/// Instructs client to move to login as an NPC and warps it to specific location.
+		/// Instructs client to login as another creature and warps it to specific location.
 		/// Returns false if region doesn't exist.
 		/// </summary>
 		/// <param name="actor"></param>
 		/// <param name="regionId"></param>
 		/// <param name="x"></param>
 		/// <param name="y"></param>
-		/// <param name="hideBody"></param>
 		/// <returns></returns>
-		public bool LoginAsNPC(NPC actor, int regionId, int x, int y, bool hideBody = false)
+		public bool RequestSecondaryLogin(Creature actor, int regionId, int x, int y)
 		{
+			if (!(actor.Client is DummyClient))
+				throw new ArgumentException(string.Format("{0} is already connected to another client!", actor.Name));
+
 			Log.Debug("Logging in as {1} 0x{0:X16}", actor.EntityId, actor.Name);
 			
 			var targetRegion = ChannelServer.Instance.World.GetRegion(regionId);
 			if (targetRegion == null)
 			{
-				Send.ServerMessage(this, "LoginAsNPC failed, region doesn't exist.");
-				Log.Error("PC.LoginAsNPC: Region '{0}' doesn't exist.", regionId);
+				Log.Error("RequestSecondaryLogin: Region '{0}' doesn't exist.", regionId);
 				return false;
 			}
 
@@ -184,17 +185,37 @@ namespace Aura.Channel.World.Entities
 			actor.Activate(CreatureStates.EnableCommonPvp);
 			this.Client.Creatures.Add(actor.EntityId, actor);
 
+			// Ask client to log in as a NPC and let it know it's a "pet"
+			Send.RequestSecondaryLogin(this, actor.EntityId);
+			Send.PetRegister(this, actor);
+
+			return true;
+		}
+		
+		/// <summary>
+		/// Instructs client to switch to a RolePlaying character.
+		/// </summary>
+		/// <param name="actor"></param>
+		/// <param name="hideBody"></param>
+		public void StartRolePlaying(Creature actor, bool hideBody = true)
+		{
+			if(actor.Temp.RolePlayingController != null)
+				throw new ArgumentException(string.Format("Role Playing Actor is already being used by {0}!", actor.Temp.RolePlayingController.Name));
+
+			if (this.Temp.RolePlayingActor != null)
+				throw new AccessViolationException(string.Format("{0} is already Role Playing as another character!", this.Name));
+
 			actor.Temp.RolePlayingController = this;
 			this.Temp.RolePlayingActor = actor;
 			this.Temp.RolePlayingHidden = hideBody;
-
-			var currentRegionId = this.RegionId;
-			var loc = new Location(currentRegionId, this.GetPosition());
 
 			if (hideBody)
 			{
 				this.Region.RemoveCreature(this);
 			}
+
+			var currentRegionId = this.RegionId;
+			var loc = new Location(currentRegionId, this.GetPosition());
 
 			this.LastLocation = loc;
 			this.WarpLocation = loc;
@@ -202,10 +223,6 @@ namespace Aura.Channel.World.Entities
 			this.Lock(Locks.Default, true);
 
 			this.Client.Controlling = actor;
-
-			// Ask client to log in as a NPC and let it know it's a "pet"
-			Send.RequestSecondaryLogin(this, actor.EntityId);
-			Send.PetRegister(this, actor);
 
 			// Make the client switch to new character
 			this.Lock(Locks.Default, true);
@@ -215,8 +232,6 @@ namespace Aura.Channel.World.Entities
 			Send.EnterRegion(this, currentRegionId, loc.X, loc.Y);
 
 			Send.VehicleInfo(actor);
-
-			return true;
 		}
 
 		/// <summary>
@@ -226,13 +241,13 @@ namespace Aura.Channel.World.Entities
 		/// By default it warps character back to its original location.
 		/// To change it, call creature.SetLocation() before calling this.
 		/// </remarks>
-		public void DisconnectFromNPC()
+		public void EndRolePlaying()
 		{
 			var actor = this.Temp.RolePlayingActor as NPC;
 			if (actor == null)
 			{
 				Send.ServerMessage(this, "Failed to disconect from NPC.");
-				Log.Error("PC.DisconnectFromNPC: RolePlayingActor is null or not a NPC");
+				Log.Error("EndRolePlaying: RolePlayingActor is null or not a NPC");
 				return;
 			}
 

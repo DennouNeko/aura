@@ -338,11 +338,12 @@ namespace Aura.Channel.World.Dungeons
 						if (act != null && pc != null)
 						{
 							// TODO: unsummon all summonable creatures controlled by Role Playing player
-							if (!pc.LoginAsNPC(act, regionId, pos.X, pos.Y, true))
+							if (!pc.RequestSecondaryLogin(act, regionId, pos.X, pos.Y))
 							{
 								failed = true;
 								break;
 							}
+							pc.StartRolePlaying(actor);
 						}
 						else
 						{
@@ -361,7 +362,7 @@ namespace Aura.Channel.World.Dungeons
 							var pc = member as PlayerCreature;
 							if (pc.Temp.RolePlayingActor as NPC != null)
 							{
-								pc.DisconnectFromNPC();
+								pc.EndRolePlaying();
 							}
 						}
 						Send.SystemMessage(creature, "At least one of party members failed to start RP session.");
