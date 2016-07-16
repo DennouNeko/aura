@@ -757,11 +757,20 @@ namespace Aura.Channel.World.Dungeons
 		/// <summary>
 		/// Plays cutscene for all party members.
 		/// </summary>
-		/// <param name="dungeon"></param>
 		/// <param name="cutsceneName"></param>
 		public void PlayCutscene(string cutsceneName)
 		{
 			Cutscene.Play(cutsceneName, this.PartyLeader);
+		}
+		
+		/// <summary>
+		/// Plays cutscene for all party members and performs action when cutscene ends.
+		/// </summary>
+		/// <param name="cutsceneName"></param>
+		/// <param name="onFinish"></param>
+		public void PlayCutscene(string cutsceneName, Action<Cutscene> onFinish)
+		{
+			Cutscene.Play(cutsceneName, this.PartyLeader, onFinish);
 		}
 
 		/// <summary>

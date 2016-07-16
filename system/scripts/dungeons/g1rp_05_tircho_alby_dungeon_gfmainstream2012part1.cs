@@ -86,8 +86,6 @@ public class AlbyRPDungeonScript : DungeonScript
 	
 	public override void OnCleared(Dungeon dungeon)
 	{
-		dungeon.PlayCutscene("G1_5_c_3WarriorsRP");
-		
 		var creators = dungeon.GetCreators();
 
 		for (int i = 0; i < creators.Count; ++i)
@@ -102,12 +100,21 @@ public class AlbyRPDungeonScript : DungeonScript
 				controller.Keywords.Give("g1_04");
 				controller.Keywords.Remove("g1_03");
 			}
-			
-			/*if (npcMember != null && controller is PlayerCreature)
-				(controller as PlayerCreature).EndRolePlaying();
-			else // as a failsafe
-				member.Warp(dungeon.Data.Exit);//*/
 		}
+		
+		dungeon.PlayCutscene("G1_5_c_3WarriorsRP", _ => 
+		{
+			for (int i = 0; i < creators.Count; ++i)
+			{
+				var member = creators[i];
+				var npcMember = member as NPC;
+				var controller = (npcMember != null && npcMember.IsRolePlayingNPC) ? npcMember.Temp.RolePlayingController : member;
+				if (npcMember != null && controller is PlayerCreature)
+					(controller as PlayerCreature).EndRolePlaying();
+				else // as a failsafe
+					member.Warp(dungeon.Data.Exit);//*/
+			}
+		});
 	}
 
 	List<DropData> drops;
