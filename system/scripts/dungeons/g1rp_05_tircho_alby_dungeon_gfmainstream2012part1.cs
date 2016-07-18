@@ -17,6 +17,12 @@ public class AlbyRPDungeonScript : DungeonScript
 		IsRolePlaying = true;
 	}
 	
+	/// <summary>
+	/// Helper for determining "party index", to make sure that right player
+	/// gets the right character. Can't trust the PartyPosition to be continuous.
+	/// </summary>
+	/// <param name="creature"></param>
+	/// <returns>0 for leader, 1...MemberCount-1 for members</returns>
 	private int GetPartyIndex(Creature creature)
 	{
 		var leader = creature.Party.Leader;
@@ -314,6 +320,7 @@ public class RPMari : RolePlayingNPC
 
 	override protected void OnPreUpdate()
 	{
+		SetRace(10001);
 	}
 
 	override protected void OnEquipmentUpdate()

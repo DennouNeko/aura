@@ -71,9 +71,10 @@ namespace Aura.Channel.World.Entities.Creatures
 		public object CounterSyncLock = new object();
 		public string CurrentBankId;
 		public string CurrentBankTitle;
-		// For Role Playing, one is a handle to a "avatar" NPC
-		public Creature RolePlayingActor;
-		public Creature RolePlayingController;
+
+		// For Role Playing
+		public Creature RolePlayingActor; // a handle to a "avatar" NPC,
+		public Creature RolePlayingController; // a handle to "master"
 		public bool RolePlayingHidden = false;
 		public bool IsRolePlayingInvisible { get { return RolePlayingActor as NPC != null && RolePlayingHidden; } }
 	}

@@ -52,6 +52,10 @@ namespace Aura.Channel.World.Entities.Helpers
 			this.OnNPCLoggedIn += this.OnLoggedIn;
 		}
 
+		/// <summary>
+		/// Sets or changes current race.
+		/// </summary>
+		/// <param name="raceId"></param>
 		public void SetRace(int raceId)
 		{
 			if (raceId == 0)
@@ -85,6 +89,10 @@ namespace Aura.Channel.World.Entities.Helpers
 			}
 		}
 
+		/// <summary>
+		/// Copies character's appearance from ActorData.
+		/// </summary>
+		/// <param name="actorData"></param>
 		public void SetAppearance(ActorData actorData)
 		{
 			if (this.RaceId != actorData.RaceId)
@@ -120,6 +128,10 @@ namespace Aura.Channel.World.Entities.Helpers
 			}
 		}
 
+		/// <summary>
+		/// Copies character's appearance from another creature.
+		/// </summary>
+		/// <param name="creature"></param>
 		public void SetAppearance(Creature creature)
 		{
 			if (this.RaceId != creature.RaceId)
@@ -154,6 +166,23 @@ namespace Aura.Channel.World.Entities.Helpers
 			}
 		}
 
+		/// <summary>
+		/// Directly set creatures appearance.
+		/// </summary>
+		/// <param name="faceId"></param>
+		/// <param name="hairId"></param>
+		/// <param name="hairColor"></param>
+		/// <param name="eyeColor"></param>
+		/// <param name="eyeType"></param>
+		/// <param name="mouthType"></param>
+		/// <param name="skinColor"></param>
+		/// <param name="weight"></param>
+		/// <param name="height"></param>
+		/// <param name="upper"></param>
+		/// <param name="lower"></param>
+		/// <param name="color1"></param>
+		/// <param name="color2"></param>
+		/// <param name="color3"></param>
 		public void SetAppearance(int faceId, int hairId, uint hairColor, int eyeColor, int eyeType, int mouthType, int skinColor, float weight = 1.0f, float height = 1.0f, float upper = 1.0f, float lower = 1.0f, uint color1 = 0x808080, uint color2 = 0x808080, uint color3 = 0x808080)
 		{
 			this.Weight = weight;
@@ -184,16 +213,35 @@ namespace Aura.Channel.World.Entities.Helpers
 			}
 		}
 
+		/// <summary>
+		/// Sets current/max Life, Mana and Stamina, and fully heals by default.
+		/// </summary>
+		/// <param name="lifeMax"></param>
+		/// <param name="manaMax"></param>
+		/// <param name="staminaMax"></param>
+		/// <param name="fullHeal"></param>
+		/// <param name="life"></param>
+		/// <param name="mana"></param>
+		/// <param name="stamina"></param>
 		public void SetVitals(float lifeMax, float manaMax, float staminaMax, bool fullHeal = true, float life = 5.0f, float mana = 0.0f, float stamina = 0.0f)
 		{
 			this.LifeMaxBase = lifeMax;
 			this.ManaMaxBase = manaMax;
 			this.StaminaMaxBase = staminaMax;
+			if (fullHeal) this.Injuries = 0;
 			this.Life = fullHeal ? this.LifeMax : life;
 			this.Mana = fullHeal ? this.ManaMax : mana;
 			this.Stamina = fullHeal ? this.StaminaMax : stamina;
 		}
 
+		/// <summary>
+		/// Sets base Str, Int, Dex, Will, Luck.
+		/// </summary>
+		/// <param name="str"></param>
+		/// <param name="int_"></param>
+		/// <param name="dex"></param>
+		/// <param name="will"></param>
+		/// <param name="luck"></param>
 		public void SetBaseStats(float str, float int_, float dex, float will, float luck)
 		{
 			this.StrBase = str;
@@ -203,18 +251,31 @@ namespace Aura.Channel.World.Entities.Helpers
 			this.LuckBase = luck;
 		}
 
+		/// <summary>
+		/// Sets current level and adjusts EXP.
+		/// </summary>
+		/// <param name="level"></param>
 		public void SetLevel(short level)
 		{
 			this.Level = level;
 			this.Exp = level > 1 ? AuraData.ExpDb.GetTotalForNextLevel(level - 1) : 0;
 		}
 
+		/// <summary>
+		/// Changes current equipment in given pocket.
+		/// </summary>
+		/// <param name="pocket"></param>
+		/// <param name="item"></param>
 		public void SetEquipment(Pocket pocket, Item item)
 		{
 			item.Info.Pocket = pocket;
 			this.Inventory.Add(item, pocket);
 		}
 
+		/// <summary>
+		/// Copies current equipment from ActorData.
+		/// </summary>
+		/// <param name="actorData"></param>
 		public void SetEquipment(ActorData actorData)
 		{
 			foreach (var itemData in actorData.Items)
@@ -234,6 +295,10 @@ namespace Aura.Channel.World.Entities.Helpers
 			}
 		}
 
+		/// <summary>
+		/// Copies current equipment from creature.
+		/// </summary>
+		/// <param name="creature"></param>
 		public void SetEquipment(Creature creature)
 		{
 			foreach (var src in creature.Inventory.GetAllEquipment())
@@ -282,6 +347,11 @@ namespace Aura.Channel.World.Entities.Helpers
 			this.Inventory.InitAdd(item);
 		}
 
+		/// <summary>
+		/// Grants a skill and ranks it up rank by rank.
+		/// </summary>
+		/// <param name="id"></param>
+		/// <param name="rank"></param>
 		public void GiveSkill(SkillId id, SkillRank rank = SkillRank.Novice)
 		{
 			for (byte b = (byte)SkillRank.Novice; b <= (byte)rank; b++)
@@ -343,7 +413,7 @@ namespace Aura.Channel.World.Entities.Helpers
 		/// </summary>
 		/// <remarks>
 		/// Recommended methods:
-		/// SetEquipment
+		/// SetEquipment, EquipItem
 		/// </remarks>
 		protected virtual void OnEquipmentUpdate() { }
 

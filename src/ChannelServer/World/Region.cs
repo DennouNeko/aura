@@ -381,9 +381,7 @@ namespace Aura.Channel.World
 					// If NPC is used for RolePlaying, update it too
 					var npc = creature as NPC;
 					if(npc != null && npc.IsRolePlayingNPC)
-					{
 						npc.LookAround();
-					}
 				}
 			}
 			finally
@@ -542,9 +540,7 @@ namespace Aura.Channel.World
 				playerCreature.LookAround();
 
 			if (npc != null && npc.IsRolePlayingNPC)
-			{
 				npc.LookAround();
-			}
 
 			creature.Region = Region.Limbo;
 
@@ -753,10 +749,11 @@ namespace Aura.Channel.World
 			_creaturesRWLS.EnterReadLock();
 			try
 			{
-				// Count any player creatures that are directly controlled,
-				// filtering creatures with masters (pets/partners).
-				return _creatures.Values.Count(a => a is PlayerCreature && a.Master == null)
-					+ _creatures.Values.Count(a => a is NPC && (a as NPC).IsRolePlayingNPC);
+				// Count any player creatures and RP NPCs
+				// that are directly controlled, filtering creatures
+				// with masters (pets/partners).
+				return _creatures.Values.Count(a => (a is PlayerCreature && a.Master == null)
+					|| (a is NPC && (a as NPC).IsRolePlayingNPC));
 			}
 			finally
 			{

@@ -48,7 +48,7 @@ namespace Aura.Channel.Network.Handlers
 			bool secondaryLogin = (packet.Peek() == PacketElementType.Byte && packet.GetByte() == 0x0b);
 			if(secondaryLogin)
 			{
-				Log.Info("ChannelLogin handler: Secondary character logging in: 0x{0:X16}", characterId);
+				Log.Info("Secondary character logging in: 0x{0:X16}", characterId);
 			}
 
 			// Check state
@@ -74,17 +74,26 @@ namespace Aura.Channel.Network.Handlers
 			var character = secondaryLogin ? client.Creatures[characterId] : account.GetCharacterOrPetSafe(characterId);
 			if (!secondaryLogin)
 			{
+				// Skip for secondary sessions,
+				// since account has been initialized already
+
 				// Free premium
 				account.PremiumServices.EvaluateFreeServices(ChannelServer.Instance.Conf.Premium);
 
 				client.Account = account;
 				client.Controlling = character;
+
+				// Secondary session creature should be added
+				// to the pool before logging in
 				client.Creatures.Add(character.EntityId, character);
 			}
 			character.Client = client;
 
-			client.State = ClientState.LoggedIn;
-			ChannelServer.Instance.Database.SetAccountLoggedIn(account.Id, true);
+			if (client.State == ClientState.LoggingIn)
+			{
+				client.State = ClientState.LoggedIn;
+				ChannelServer.Instance.Database.SetAccountLoggedIn(account.Id, true);
+			}
 
 			// Per-character specific initialization
 			NPC npcchar = character as NPC;
@@ -104,7 +113,6 @@ namespace Aura.Channel.Network.Handlers
 			// Special login to Soul Stream for new chars and on birthdays
 			if (!secondaryLogin && (!character.Has(CreatureStates.Initialized) || character.CanReceiveBirthdayPresent))
 			{
-				Log.Debug("Spawning character at Soul Stream.");
 				var npcEntityId = (character.IsCharacter ? MabiId.Nao : MabiId.Tin);
 				var npc = ChannelServer.Instance.World.GetCreature(npcEntityId);
 				if (npc == null)
@@ -119,14 +127,13 @@ namespace Aura.Channel.Network.Handlers
 			else
 			{
 				// Fallback for invalid region ids, like 0, dynamics, and dungeons.
-				// Except for NPCs. They can login directly into any region.
-				if (!secondaryLogin && (character.RegionId == 0 || Math2.Between(character.RegionId, 35000, 40000) || Math2.Between(character.RegionId, 10000, 11000)))
+				// Except for NPCs. They can login directly into any non-limbo region.
+				if (character.RegionId == 0 || (!secondaryLogin && (Math2.Between(character.RegionId, 35000, 40000) || Math2.Between(character.RegionId, 10000, 11000))))
 					character.SetLocation(1, 12800, 38100);
 
 				character.Activate(CreatureStates.EverEnteredWorld);
 
 				var loc = character.GetLocation();
-				Log.Debug("Spawning character at {0}", loc);
 				character.Warp(loc);
 			}
 		}
@@ -188,9 +195,11 @@ namespace Aura.Channel.Network.Handlers
 			creature.Region.ActivateAis(creature, pos, pos);
 
 			// Warp pets and other creatures as well
-			// Ignore if RolePlaying?
+			// Ignore if RolePlaying
 			if (creature.Temp.RolePlayingController == null && !creature.Temp.IsRolePlayingInvisible)
 			{
+				// TODO: change to warping only those creatures,
+				// whose master is currently controlled creature?
 				foreach (var cr in client.Creatures.Values.Where(a => a.RegionId != creature.RegionId))
 					cr.Warp(creature.RegionId, pos.X, pos.Y);
 			}
@@ -205,6 +214,9 @@ namespace Aura.Channel.Network.Handlers
 			// afterwards, so the client is done with the warping process,
 			// when things like cutscenes are started from the OnEnter
 			// events in  the dungeon script.
+			// Needs to be delayed for RP NPCs, because they can't
+			// watch cutscenes before receiving ChannelCharacterInfoRequestR
+			// in reply to next packet.
 			var npc = creature as NPC;
 			var dungeonLobbyRegion = creature.Region as DungeonLobbyRegion;
 			if (dungeonLobbyRegion != null && (npc == null || !npc.IsRolePlayingNPC))
@@ -359,7 +371,6 @@ namespace Aura.Channel.Network.Handlers
 			var unk1 = packet.GetByte(); // 1 | 2 (maybe login vs exit?)
 
 			Log.Info("'{0}' is closing the connection. Saving...", client.Account.Id);
-			Log.Debug("Unk was {0}", unk1);
 
 			client.CleanUp();
 

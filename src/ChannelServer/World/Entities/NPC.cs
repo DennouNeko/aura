@@ -68,7 +68,7 @@ namespace Aura.Channel.World.Entities
 		/// </summary>
 		public bool IsRolePlayingNPC { get { return this.Temp.RolePlayingController as PlayerCreature != null; } }
 
-		// For emulating PlayerCreature as NPC
+		// For making NPC behave as PlayerCreature when Role Playing
 		private List<Entity> _visibleEntities = new List<Entity>();
 		private object _lookAroundLock = new Object();
 
@@ -250,6 +250,7 @@ namespace Aura.Channel.World.Entities
 			}
 			else
 			{
+				// Emulate PlayerCreature Warp
 				var targetRegion = ChannelServer.Instance.World.GetRegion(regionId);
 				if (targetRegion == null)
 				{
@@ -468,6 +469,7 @@ namespace Aura.Channel.World.Entities
 			}
 			else
 			{
+				// Emulate PlayerCreature for RP NPCs
 				return (lifeBefore >= this.LifeMax / 2);
 			}
 		}

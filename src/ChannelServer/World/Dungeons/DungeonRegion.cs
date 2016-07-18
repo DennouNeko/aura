@@ -75,6 +75,7 @@ namespace Aura.Channel.World.Dungeons
 		{
 			foreach (var creature in this.GetCreatures(a => a is NPC && !a.Has(CreatureStates.GoodNpc)))
 			{
+				// Make sure we don't remove RP NPCs
 				NPC npc = creature as NPC;
 				if (!npc.IsRolePlayingNPC)
 					this.RemoveCreature(creature);

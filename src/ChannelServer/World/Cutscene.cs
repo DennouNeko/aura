@@ -55,6 +55,7 @@ namespace Aura.Channel.World
 			if ((this.Data = AuraData.CutscenesDb.Find(name)) == null)
 				throw new ArgumentException("Unknown cutscene '" + name + "'.");
 
+			// We have to use the active characters
 			this.Name = name;
 			this.Leader = leader.Temp.IsRolePlayingInvisible ? leader.Temp.RolePlayingActor : leader;
 
@@ -153,12 +154,15 @@ namespace Aura.Channel.World
 		/// </summary>
 		public void Play()
 		{
+			// If Role Playing NPC, get the party of "master" character
 			var npcLead = this.Leader as NPC;
 			var trueLeader = (npcLead != null && npcLead.IsRolePlayingNPC) ? npcLead.Temp.RolePlayingController : this.Leader;
 			_viewers = trueLeader.Party.GetMembers();
 
 			foreach (var member in _viewers)
 			{
+				// We have to use the active characters,
+				// so substitute the member with actor
 				var viewer = member.Temp.IsRolePlayingInvisible ? member.Temp.RolePlayingActor : member;
 				viewer.Temp.CurrentCutscene = this;
 				viewer.Lock(Locks.Default, true);
@@ -200,6 +204,8 @@ namespace Aura.Channel.World
 		{
 			foreach (var member in _viewers)
 			{
+				// We have to use the active characters,
+				// so substitute the member with actor
 				var viewer = member.Temp.IsRolePlayingInvisible ? member.Temp.RolePlayingActor : member;
 				Send.CutsceneEnd(viewer);
 				viewer.Unlock(Locks.Default, true);

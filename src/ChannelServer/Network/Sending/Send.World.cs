@@ -36,6 +36,10 @@ namespace Aura.Channel.Network.Sending
 		/// Broadcasts EntityDisappears|ItemDisappears in entity's region.
 		/// </summary>
 		/// <param name="entity"></param>
+		/// <param name="unk">
+		/// Seems to be true for entities that player could control.
+		/// Confiremd cases are RP NPCs, Golems and Puppets.
+		/// </param>
 		public static void EntityDisappears(Entity entity, bool unk = false)
 		{
 			var op = Op.EntityDisappears;

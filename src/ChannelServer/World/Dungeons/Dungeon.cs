@@ -318,6 +318,7 @@ namespace Aura.Channel.World.Dungeons
 
 			statue.Behavior = (cr, pr) =>
 			{
+				// For RP NPCs end Role Playing instead of warping out
 				if (cr is NPC && (cr as NPC).IsRolePlayingNPC)
 				{
 					var plr = cr.Temp.RolePlayingController as PlayerCreature;
@@ -463,6 +464,7 @@ namespace Aura.Channel.World.Dungeons
 				exitStatue.Behavior = (cr, pr) =>
 				{
 					ChannelServer.Instance.Events.OnPlayerClearedDungeon(cr, this);
+					// For RP NPCs end Role Playing instead of warping out
 					if (cr is NPC && (cr as NPC).IsRolePlayingNPC)
 					{
 						var plr = cr.Temp.RolePlayingController as PlayerCreature;
@@ -779,6 +781,7 @@ namespace Aura.Channel.World.Dungeons
 		/// <param name="creature"></param>
 		public void OnPlayerEntersLobby(Creature creature)
 		{
+			// If RP NPC, check if master was one of creators
 			var crt2 = creature;
 			var npc = creature as NPC;
 			if (npc != null && (npc.IsRolePlayingNPC))
@@ -909,6 +912,8 @@ namespace Aura.Channel.World.Dungeons
 		/// <returns></returns>
 		public List<Creature> GetCreators()
 		{
+			// Workaround to get a list of creatures in dungeon
+			// that are being controlled by original creators
 			var result = new List<Creature>();
 			var npcLead = this.PartyLeader as NPC;
 			var trueLeader = (npcLead != null && npcLead.IsRolePlayingNPC) ? npcLead.Temp.RolePlayingController : this.PartyLeader;

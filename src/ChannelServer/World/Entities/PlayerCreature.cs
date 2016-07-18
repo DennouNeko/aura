@@ -180,9 +180,12 @@ namespace Aura.Channel.World.Entities
 			}
 
 			actor.SetLocation(regionId, x, y);
-			// actor.Activate(CreatureStates.Initialized);
-			actor.Activate(CreatureStates.InstantNpc);
-			actor.Activate(CreatureStates.EnableCommonPvp);
+			// Seems like for all secondary logins it's the same, DefaultState | 0x10001000
+			// RP NPC = 0x10001000
+			// Golem  = 0xB0001004
+			// Puppet = 0xB0001000
+			actor.Activate(CreatureStates.InstantNpc); // 0x10000000
+			actor.Activate(CreatureStates.EnableCommonPvp); // 0x00001000
 			this.Client.Creatures.Add(actor.EntityId, actor);
 
 			// Ask client to log in as a NPC and let it know it's a "pet"
@@ -258,7 +261,7 @@ namespace Aura.Channel.World.Entities
 
 			var apos = actor.GetPosition();
 
-			Send.RequestEndRP(this, this.EntityId, loc.RegionId);
+			Send.RequestEndRP(this, loc.RegionId);
 
 			// It seems that for any character, that player could control,
 			// the end byte of EntityDisappears is 1
@@ -292,9 +295,7 @@ namespace Aura.Channel.World.Entities
 		/// </summary>
 		public void LookAround()
 		{
-			if (!this.Watching)
-				return;
-
+			// To make sure we'll get a full update after Role Playing
 			if(this.Temp.IsRolePlayingInvisible)
 			{
 				if (_visibleEntities.Count > 0)
@@ -304,6 +305,9 @@ namespace Aura.Channel.World.Entities
 				}
 				return;
 			}
+
+			if (!this.Watching)
+				return;
 
 			lock (_lookAroundLock)
 			{

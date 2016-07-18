@@ -282,9 +282,8 @@ namespace Aura.Channel.World.Dungeons
 				return false;
 			}
 
-			// Re-fetch actual dungeon script
+			// Re-fetch actual dungeon script to check if it's a RP dungeon
 			dungeonScript = ChannelServer.Instance.ScriptManager.DungeonScripts.Get(dungeonName);
-			// Log.Debug("RolePlaying flag = {0}", dungeonScript.IsRolePlaying);
 			if (dungeonScript != null && dungeonScript.IsRolePlaying)
 				return this.CreateDungeonAndWarp(dungeonName, item.Info.Id, creature, dungeonScript.OnSubstitutePlayer);
 			else
@@ -315,6 +314,8 @@ namespace Aura.Channel.World.Dungeons
 					var party = creature.Party.GetCreaturesOnAltar(creature.RegionId);
 					if (npcSubstitute != null)
 					{
+						// Paranoia check.
+						// Making sure we're able to start role-playing for each member.
 						foreach (var member in party)
 						{
 							if (member as PlayerCreature == null)
@@ -334,12 +335,12 @@ namespace Aura.Channel.World.Dungeons
 						var actor = (npcSubstitute == null) ? member : npcSubstitute(member);
 						var act = actor as NPC;
 						var pc = member as PlayerCreature;
-						// Log.Debug("member {0}, actor {1}, substitute {2}, equal {3}", pc != null, act != null, npcSubstitute != null, actor == member);
 						if (act != null && pc != null)
 						{
 							// TODO: unsummon all summonable creatures controlled by Role Playing player
 							if (!pc.RequestSecondaryLogin(act, regionId, pos.X, pos.Y))
 							{
+								Send.SystemMessage(creature, "{0} failed to start RP session.", pc.Name);
 								failed = true;
 								break;
 							}
@@ -365,7 +366,7 @@ namespace Aura.Channel.World.Dungeons
 								pc.EndRolePlaying();
 							}
 						}
-						Send.SystemMessage(creature, "At least one of party members failed to start RP session.");
+						Send.SystemMessage(creature, "Warping to dungeon cancelled.");
 						return false;
 					}
 

@@ -480,27 +480,30 @@ namespace Aura.Channel.Network.Sending.Helpers
 				}
 			}
 
-			// Following a master
+			// Creature type
 			// --------------------------------------------------------------
 			if (type == CreaturePacketType.Private)
 			{
+				// RP NPC
 				if(npc != null && npc.IsRolePlayingNPC)
 				{
 					packet.PutLong(npc.Temp.RolePlayingController.EntityId);
 					packet.PutByte(1);
 					packet.PutByte(0);
 				}
+				// Pet following a master
 				else if (creature.Master != null)
 				{
 					packet.PutLong(creature.Master.EntityId);
-					packet.PutByte(2);               // Type (1:RPCharacter, 2:Pet, 3:Transport, 4:PartnerVehicle)
-					packet.PutByte(0);				 // SubType
+					packet.PutByte(2);
+					packet.PutByte(0);
 				}
+				// Other types = treat as regular player
 				else
 				{
 					packet.PutLong(0);
-					packet.PutByte(0);
-					packet.PutByte(0);
+					packet.PutByte(0); // Type (1:RPCharacter, 2:Pet, 3:Transport, 4:PartnerVehicle)
+					packet.PutByte(0); // SubType
 				}
 			}
 

@@ -111,6 +111,8 @@ namespace Aura.Channel.Network.Handlers
 						break;
 					}
 
+					// Revive at entrance means leaving dungeon,
+					// so instead of reviving, end Role Playing for RP NPCs
 					var npc = creature as NPC;
 					if (npc != null && npc.IsRolePlayingNPC)
 					{
