@@ -1,4 +1,7 @@
-﻿using Aura.Channel.Network.Sending;
+﻿// Copyright (c) Aura development team - Licensed under GNU GPL
+// For more information, see license file in the main folder
+
+using Aura.Channel.Network.Sending;
 using Aura.Channel.Skills;
 using Aura.Channel.World.Entities.Creatures;
 using Aura.Channel.World.Inventory;
