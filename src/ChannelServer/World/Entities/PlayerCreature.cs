@@ -263,20 +263,10 @@ namespace Aura.Channel.World.Entities
 
 			Send.RequestEndRP(this, loc.RegionId);
 
-			// It seems that for any character, that player could control,
-			// the end byte of EntityDisappears is 1
-			// Known cases are: Golem, Puppet, RP NPC
-			this.Client.Creatures.Remove(actor.EntityId);
-			actor.Region.RemoveCreature(actor);
 			this.Client.Controlling = this;
-
 			this.Unlock(Locks.Default, true);
 
-			actor.Dispose();
-			Send.PetUnregister(this, actor);
-			Send.Disappear(actor);
-			actor.Client = new DummyClient();
-			actor.Client.Kill();
+			TerminateSecondarySession(actor);
 
 			this.Temp.RolePlayingActor = null;
 			this.Temp.RolePlayingHidden = false;
@@ -288,6 +278,26 @@ namespace Aura.Channel.World.Entities
 				r.AddCreature(this);
 				this.Warp(loc);
 			}
+		}
+
+		/// <summary>
+		/// For disposing of creatures that were added by RequestSecondaryLogin.
+		/// </summary>
+		/// <param name="actor"></param>
+		public void TerminateSecondarySession(Creature actor)
+		{
+			// TODO: put the creature on delayed removal list?
+			// It seems that for any character, that player could control,
+			// the end byte of EntityDisappears is 1
+			// Known cases are: Golem, Puppet, RP NPC
+			this.Client.Creatures.Remove(actor.EntityId);
+			actor.Region.RemoveCreature(actor);
+
+			actor.Dispose();
+			Send.PetUnregister(this, actor);
+			Send.Disappear(actor);
+			actor.Client = new DummyClient();
+			actor.Client.Kill();
 		}
 
 		/// <summary>
