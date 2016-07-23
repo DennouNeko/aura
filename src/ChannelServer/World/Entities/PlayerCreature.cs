@@ -254,6 +254,9 @@ namespace Aura.Channel.World.Entities
 				return;
 			}
 
+			if (actor.Client.NpcSession.IsValid())
+				actor.Client.NpcSession.Clear();
+
 			bool warpBack = this.Temp.IsRolePlayingInvisible;
 			var loc = this.GetLocation();
 
