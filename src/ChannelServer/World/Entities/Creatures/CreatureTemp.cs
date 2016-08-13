@@ -72,6 +72,8 @@ namespace Aura.Channel.World.Entities.Creatures
 		public string CurrentBankId;
 		public string CurrentBankTitle;
 
+		public Trade ActiveTrade;
+		public Entrustment ActiveEntrustment;
 		// For Role Playing
 		public Creature RolePlayingActor; // a handle to a "avatar" NPC,
 		public Creature RolePlayingController; // a handle to "master"
