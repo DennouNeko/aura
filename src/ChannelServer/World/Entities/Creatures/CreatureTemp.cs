@@ -72,10 +72,11 @@ namespace Aura.Channel.World.Entities.Creatures
 		public string CurrentBankId;
 		public string CurrentBankTitle;
 
+		public Trade ActiveTrade;
+		public Entrustment ActiveEntrustment;
 		// For Role Playing
 		public Creature RolePlayingActor; // a handle to a "avatar" NPC,
 		public Creature RolePlayingController; // a handle to "master"
 		public bool RolePlayingHidden = false;
-		public bool IsRolePlayingInvisible { get { return RolePlayingActor as NPC != null && RolePlayingHidden; } }
-	}
+		public bool IsRolePlayingInvisible { get { return RolePlayingActor as NPC != null && RolePlayingHidden; } }	}
 }
