@@ -596,7 +596,9 @@ namespace Aura.Channel.Scripting.Scripts
 		// ------------------------------------------------------------------
 
 		protected QuestReward Item(int itemId, int amount = 1) { return new QuestRewardItem(itemId, amount); }
+		protected QuestReward Keyword(string keyword) { return new QuestRewardKeyword(keyword); }
 		protected QuestReward Enchant(int optionSetId) { return new QuestRewardEnchant(optionSetId); }
+		protected QuestReward WarpScroll(int itemId, string portal) { return new QuestRewardWarpScroll(itemId, portal); }
 		protected QuestReward QuestScroll(int questId) { return new QuestRewardQuestScroll(questId); }
 		protected QuestReward Skill(SkillId skillId, SkillRank rank) { return new QuestRewardSkill(skillId, rank, 0); }
 		protected QuestReward Skill(SkillId skillId, SkillRank rank, int training) { return new QuestRewardSkill(skillId, rank, training); }
@@ -605,6 +607,17 @@ namespace Aura.Channel.Scripting.Scripts
 		protected QuestReward ExplExp(int amount) { return new QuestRewardExplExp(Math2.MultiplyChecked(amount, ChannelServer.Instance.Conf.World.QuestExpRate)); }
 		protected QuestReward AP(short amount) { return new QuestRewardAp(Math2.MultiplyChecked(amount, ChannelServer.Instance.Conf.World.QuestApRate)); }
 		protected QuestReward StatBonus(Stat stat, int amount) { return new QuestRewardStatBonus(stat, amount); }
+
+		// Events
+		// ------------------------------------------------------------------
+
+		public virtual void OnReceive(Creature creature)
+		{
+		}
+
+		public virtual void OnComplete(Creature creature)
+		{
+		}
 
 		// Where the magic happens~
 		// ------------------------------------------------------------------
@@ -721,7 +734,9 @@ namespace Aura.Channel.Scripting.Scripts
 
 					case ObjectiveType.Collect:
 						var itemId = (objective as QuestObjectiveCollect).ItemId;
-						var count = creature.Inventory.Count(itemId);
+
+						// Do not count incomplete items (e.g. tailoring, blacksmithing).
+						var count = creature.Inventory.Count((Item item) => (item.Info.Id == itemId || item.Data.StackItemId == itemId) && !item.MetaData1.Has("PRGRATE"));
 
 						if (!progress.Done && count >= objective.Amount)
 							quest.SetDone(progress.Ident);
@@ -987,8 +1002,12 @@ namespace Aura.Channel.Scripting.Scripts
 			}
 			else if (prargs != null) // Try cast as ProductionEventArgs
 			{
+				// Cancel if it wasn't a success
+				if (!prargs.Success)
+					return;
+
 				creature = prargs.Creature;
-				itemId = prargs.Item.Info.Id;
+				itemId = prargs.ProductionData.ItemId; // Use production data in case Item is null
 				skill = prargs.ProductionData.Category.ToString();
 				if (skill == "Spinning")
 					skill = "Weaving"; // Shared SkillId.
@@ -1014,11 +1033,19 @@ namespace Aura.Channel.Scripting.Scripts
 				var createObjective = (objective as QuestObjectiveCreate);
 				if (!progress.Done && itemId == createObjective.ItemId && skill == createObjective.SkillId.ToString())
 				{
-					progress.Count++;
-					if (progress.Count == createObjective.Amount)
+					var done = (++progress.Count == createObjective.Amount);
+					if (done)
 						quest.SetDone(progress.Ident);
 
 					UpdateQuest(creature, quest);
+
+					// Hot-fix for #390, after a creation objective might
+					// come a collect objective for the finished items,
+					// the new active objective has to be checked.
+					// This should happen generally, but some refactoring is
+					// in order, to not make such a mess out of it.
+					if (done)
+						this.CheckCurrentObjective(creature);
 				}
 			}
 		}

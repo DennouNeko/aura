@@ -194,6 +194,7 @@ namespace Aura.Channel.World.Entities
 			foreach (var itemData in actorData.Items)
 			{
 				var item = new Item(itemData.ItemId);
+				item.Info.State = (byte)itemData.State;
 
 				if (itemData.HasColors)
 				{

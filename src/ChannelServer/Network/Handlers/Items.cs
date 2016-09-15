@@ -50,7 +50,7 @@ namespace Aura.Channel.Network.Handlers
 
 			// Just silently fail if it's an RP NPC
 			// TODO: add filtering to allow refilling magazines?
-			if (npc != null && npc.IsRolePlayingNPC)
+			if (npc != null && npc.IsRolePlayingNPC && (source.IsEquip() || target.IsEquip()))
 			{
 				goto L_Fail;
 			}
@@ -211,7 +211,7 @@ namespace Aura.Channel.Network.Handlers
 			}
 
 			// Check droppability
-			if (item.HasTag("/not_dropable/"))
+			if (item.HasTag("/not_dropable/") || item.Data.Action == ItemAction.ImportantItem || item.Data.Action == ItemAction.Important2Item)
 			{
 				Send.ItemDropR(creature, Localization.Get("You cannot drop this item."));
 				return;
@@ -296,22 +296,9 @@ namespace Aura.Channel.Network.Handlers
 				return;
 			}
 
-			// Add bag
-			if (item.IsBag)
-			{
-				if (item.Data.BagWidth == 0)
-					Send.ServerMessage(creature, Localization.Get("Beware, shaped bags aren't supported yet."));
-				else if (!creature.Inventory.AddBagPocket(item))
-				{
-					// TODO: Handle somehow? Without linked pocket the bag
-					//   won't open.
-				}
-			}
-
 			// Try to pick up item
 			if (!creature.Inventory.PickUp(item))
 			{
-				creature.Inventory.Remove(item.OptionInfo.LinkedPocketId);
 				Send.ItemPickUpR(creature, ItemPickUpResult.NoSpace, entityId);
 				return;
 			}
@@ -342,7 +329,7 @@ namespace Aura.Channel.Network.Handlers
 			// but in my defense, it was devCAT's idea. Instead of adding the
 			// destroyable tag to the item, the client checks for the
 			// hamlets_sword tag >_>
-			if (!item.HasTag("/destroyable/|/hamlets_sword/"))
+			if (!item.HasTag("/destroyable/|/hamlets_sword/|/guild_robe/"))
 			{
 				Log.Warning("ItemDestroy: Creature '{0:X16}' tried to destroy a non-destroyable item.", creature.EntityId);
 				Send.ItemDestroyR(creature, false);
@@ -590,9 +577,10 @@ namespace Aura.Channel.Network.Handlers
 			{
 				creature.Inventory.Decrement(item);
 
-				// Replace used bottles with empty bottles.
-				if (item.HasTag("/milk/|/water/"))
-					creature.Inventory.Add(new Item(63020), true);
+				// Replace consumed items with something else,
+				// e.g milk bottles with empty bottles.
+				if (item.Data.ReplaceItemId != 0)
+					creature.Inventory.Add(new Item(item.Data.ReplaceItemId), true);
 			}
 
 			// Break seal after use
